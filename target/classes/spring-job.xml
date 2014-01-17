@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:sws="http://www.springframework.org/schema/web-services"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/web-services http://www.springframework.org/schema/web-services/web-services-2.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+	http://www.bstek.com/bdf/schema http://www.bstek.com/dorado/schema/bdf2.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<bean id="msgActivity" class="org.springframework.scheduling.quartz.JobDetailBean">
+		<property name="jobClass">
+			<value>com.greenisland.taxi.gateway.job.ActivityConnect</value>
+		</property>
+		<property name="applicationContextJobDataKey" value="applicationContext" />
+		<property name="jobDataAsMap">
+			<map>
+				<entry key="syncClient">
+					<ref bean="syncClient" />
+				</entry>
+			</map>
+		</property>
+	</bean>
+	<bean id="msgClock" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail">
+			<ref bean="msgActivity" />
+		</property>
+		<property name="repeatInterval">
+			<value>15000</value>
+		</property>
+	</bean>
+
+	<bean id="msgActivityTimer" class="org.springframework.scheduling.quartz.JobDetailBean">
+		<property name="jobClass">
+			<value>com.greenisland.taxi.gateway.cmpp.util.MsgActivityTimer</value>
+		</property>
+		<property name="applicationContextJobDataKey" value="applicationContext" />
+		<property name="jobDataAsMap">
+			<map>
+				<entry key="msgContainer">
+					<ref bean="msgContainer" />
+				</entry>
+			</map>
+		</property>
+	</bean>
+	<bean id="msgActivityTimerClock" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail">
+			<ref bean="msgActivityTimer" />
+		</property>
+		<property name="repeatInterval">
+			<value>60000</value>
+		</property>
+	</bean>
+
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="msgClock" />
+				<ref bean="msgActivityTimerClock" />
+			</list>
+		</property>
+	</bean>
+</beans>
