@@ -73,7 +73,7 @@ public class DefaultMessageHandler implements MessageHandler {
 			case GPSCommand.GPS_TAXI_MONITER:
 				TaxiInfo taxi = new TaxiInfo();
 				CompanyInfo company = new CompanyInfo();
-				respBody = content[1];
+				respBody = body;
 				String[] taxis = respBody.split("\\|");
 				taxi.setTaxiPlateNumber(taxis[0]);
 				taxi.setLongitude(taxis[1]);

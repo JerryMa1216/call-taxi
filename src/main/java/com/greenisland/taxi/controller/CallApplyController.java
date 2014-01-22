@@ -128,7 +128,8 @@ public class CallApplyController {
 		String applyId = callApplyInfoService.saveCallApplyInfo(applyInfo);
 
 		// 调用GPS平台接口发送打车请求，name为推送中的userId，age为推送中的channelId
-		String requestMsg = TCPUtils.getCallApply(applyInfo, applyId + "-" + mechineType + "-" + name + "-" + age + "-" + callType, location,userInfo);
+		String requestMsg = TCPUtils.getCallApply(applyInfo, applyId + "-" + mechineType + "-" + name + "-" + age + "-" + callType, location,
+				userInfo);
 		boolean flag = syncClient.sendMessage(requestMsg);
 		if (flag) {
 			// 获取GPS平台返回数据
@@ -161,7 +162,7 @@ public class CallApplyController {
 			map.put("date", new Date());
 			map.put("data", null);
 		}
-		
+
 		try {
 			response.reset();
 			response.setCharacterEncoding("UTF-8");
@@ -356,6 +357,7 @@ public class CallApplyController {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
+		// 根据订单id获取订单信息
 		CallApplyInfo applyInfo = callApplyInfoService.getCallApplyInfoById(applyId);
 		if (applyInfo != null) {
 			CommentInfo comment = commentInfoService.getCommentInfo(applyId);
@@ -373,6 +375,7 @@ public class CallApplyController {
 				commentInfoService.saveCommentInfo(newComment);
 			}
 			if (Integer.parseInt(level) < 4) {
+				// 评价级别小于4代表用户已上车
 				applyInfo.setIsGetOn("1");
 			} else {
 				applyInfo.setIsGetOn("0");

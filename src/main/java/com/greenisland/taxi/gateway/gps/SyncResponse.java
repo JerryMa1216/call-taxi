@@ -80,6 +80,7 @@ public class SyncResponse {
 				}
 				// 更新订单信息
 				applyInfo.setTaxiId(taxiId);
+				// 更新订单响应状态为“已响应” 1
 				applyInfo.setResponseState(ResponseState.RESPONSED);
 				applyInfo.setUpdateDate(new Date());
 				callApplyInfoService.updateApplyInfo(applyInfo);

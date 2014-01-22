@@ -17,25 +17,26 @@ public class PushTest {
 	private final static String API_KEY = "Hh3TibjsDoMZWi2NxXGRVGF6";
 	private final static String SECRIT_KEY = "moeDFfZMpbSNoRaH1hDpNfzSLHWf1BM9";
 
-//	@Test
-//	public void pushNotify() {
-//		DefaultPushClient client = new DefaultPushClient(new PushCredentials(API_KEY, SECRIT_KEY));
-//		PushMessageRequest request = new PushMessageRequest();
-//		request.setMessageType(MessageType.notify);
-//		StringBuilder message = new StringBuilder("{\"aps\":{\"alert\":");
-//		message.append("\"159打车：您的订单已被抢到\",\"sound\":\"\",\"badge\":\"\"},");
-//		message.append("\"applyId\":\"4028688142e7f3170142e80146060004\",");
-//		message.append("\"cType\":\"1\"}");
-//		request.setMessages(message.toString());
-//		request.setChannelId("5250093927790527979");
-//		request.setUserId("793155904144534859");
-//		request.setPushType(PushType.single_user);
-//		request.setDeviceTypes(Arrays.asList(DeviceType.iso));
-//		request.setDeployStatus(Long.valueOf(1));
-//		request.setMessageKeys("msgkeys");
-//		PushResponse<Integer> response = client.pushMessage(request);
-//		System.out.println(response);
-//	}
+	@Test
+	public void pushNotify() {
+		//40286881439b3e9d01439b3f002f0002
+		DefaultPushClient client = new DefaultPushClient(new PushCredentials(API_KEY, SECRIT_KEY));
+		PushMessageRequest request = new PushMessageRequest();
+		request.setMessageType(MessageType.notify);
+		StringBuilder message = new StringBuilder("{\"aps\":{\"alert\":");
+		message.append("\"159打车：您的订单已被抢到\",\"sound\":\"\",\"badge\":\"\"},");
+		message.append("\"applyId\":\"4028688143b5943e0143b5ad9b17000d\",");
+		message.append("\"cType\":\"1\"}");
+		request.setMessages(message.toString());
+		request.setChannelId("4937998570974365426");
+		request.setUserId("1038421536788515972");
+		request.setPushType(PushType.single_user);
+		request.setDeviceTypes(Arrays.asList(DeviceType.iso));
+		request.setDeployStatus(Long.valueOf(1));
+		request.setMessageKeys("msgkeys");
+		PushResponse<Integer> response = client.pushMessage(request);
+		System.out.println(response);
+	}
 
 	@Test
 	public void pushMessageAndroid() {
