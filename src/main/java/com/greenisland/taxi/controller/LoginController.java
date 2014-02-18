@@ -24,10 +24,12 @@ import com.bstek.dorado.core.Configure;
 import com.greenisland.taxi.common.constant.UserState;
 import com.greenisland.taxi.common.utils.CaptchaUtils;
 import com.greenisland.taxi.domain.EquipmentInfo;
+import com.greenisland.taxi.domain.FeedBack;
 import com.greenisland.taxi.domain.ReturnObject;
 import com.greenisland.taxi.domain.UserInfo;
 import com.greenisland.taxi.gateway.cmpp.util.MsgContainer;
 import com.greenisland.taxi.manager.EquipmentInfoService;
+import com.greenisland.taxi.manager.FeedbackService;
 import com.greenisland.taxi.manager.UserInfoService;
 import com.greenisland.taxi.security.utils.DES;
 import com.greenisland.taxi.security.utils.RSA;
@@ -48,6 +50,8 @@ public class LoginController {
 	private UserInfoService userInfoService;
 	@Resource
 	private MsgContainer msgContainer;
+	@Resource
+	private FeedbackService feedbackService;
 
 	/**
 	 * 获取短信验证码
@@ -82,7 +86,7 @@ public class LoginController {
 					Integer capCount = userInfo.getRequestCapCount();
 					if (capCount < Integer.parseInt(Configure.getString("count"))) {
 						try {
-							message.append("159打车，登陆验证码为： " + captchaCode);
+							message.append("余杭快的，登陆验证码为： " + captchaCode);
 							flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
 							if (flag) {
 								userInfo.setCaptcha(captchaCode);
@@ -112,7 +116,7 @@ public class LoginController {
 				} else {
 					// 新用户
 					try {
-						message.append("159打车，登陆验证码为： " + captchaCode);
+						message.append("余杭快的，登陆验证码为： " + captchaCode);
 						flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
 						if (flag) {
 							UserInfo newUser = new UserInfo();
@@ -151,7 +155,7 @@ public class LoginController {
 				Integer capCount = userInfo.getRequestCapCount();
 				if (capCount < Integer.parseInt(Configure.getString("count"))) {
 					try {
-						message.append("159打车，登陆验证码为： " + captchaCode);
+						message.append("余杭快的，登陆验证码为： " + captchaCode);
 						flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
 						if (flag) {
 							userInfo.setCaptcha(captchaCode);
@@ -181,7 +185,7 @@ public class LoginController {
 				}
 			} else {
 				try {
-					message.append("159打车，登陆验证码为： " + captchaCode);
+					message.append("余杭快的，登陆验证码为： " + captchaCode);
 					flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
 					if (flag) {
 						UserInfo newUser = new UserInfo();
@@ -270,6 +274,49 @@ public class LoginController {
 				map.put("date", new Date());
 				map.put("data", new ReturnObject(null));
 			}
+			response.reset();
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("text/json");
+			PrintWriter pw = response.getWriter();
+			pw.write(objectMapper.writeValueAsString(map));
+			pw.flush();
+			pw.close();
+		} catch (Exception e) {
+			log.error("系统异常>>" + e.getMessage());
+		}
+	}
+
+	/**
+	 * 意见与反馈
+	 * 
+	 * @param username
+	 * @param content
+	 * @param response
+	 */
+	@RequestMapping(value = "/feedback", method = RequestMethod.POST)
+	public void feedback(@RequestParam String username, @RequestParam String content, HttpServletResponse response) {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
+		FeedBack back = new FeedBack();
+		try {
+			back.setUsername(username);
+			back.setContent(content);
+			back.setCreateDate(new Date());
+			this.feedbackService.save(back);
+			map.put("state", "0");
+			map.put("message", "反馈成功！");
+			map.put("date", new Date());
+			map.put("data", new ReturnObject(null));
+
+		} catch (Exception e) {
+			log.error("系统异常>>" + e.getMessage());
+			map.put("state", "1");
+			map.put("message", "反馈失败！");
+			map.put("date", new Date());
+			map.put("data", new ReturnObject(null));
+		}
+		try {
 			response.reset();
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/json");

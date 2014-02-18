@@ -34,7 +34,7 @@ public class UserInfo implements Serializable {
 	private String phoneNumber;
 	private String captcha;
 	private String userName;
-	private Integer breakPromiseCount = 0;
+	private Integer breakPromiseCount = 0;//爽约次数
 	private Integer callCount = 0;
 	private String address;// 常用地址
 	private Integer requestCapCount;// 获取验证码次数

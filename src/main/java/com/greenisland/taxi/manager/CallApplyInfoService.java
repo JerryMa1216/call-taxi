@@ -33,11 +33,24 @@ public class CallApplyInfoService extends BaseHibernateDao {
 	}
 
 	@SuppressWarnings("unchecked")
+	public CallApplyInfo getCallApplyInfoThread(String id) {
+		String hql = "from CallApplyInfo c where c.responseState='2' and c.id=?";
+		List<CallApplyInfo> list = this.getHibernateTemplate().find(hql, id);
+		return list != null && list.size() > 0 ? list.get(0) : null;
+	}
+
+	/**
+	 * 取消已响应的订单查询
+	 * @param id
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
 	public CallApplyInfo getCallApplyInfo(String id) {
 		String hql = "from CallApplyInfo c where c.state ='1' and c.deleteFlag ='N' and c.id=?";
 		List<CallApplyInfo> list = this.getHibernateTemplate().find(hql.toString(), id);
 		return list != null && list.size() > 0 ? list.get(0) : null;
 	}
+
 	@SuppressWarnings("unchecked")
 	public CallApplyInfo getCallApplyInfoNoResponse(String id) {
 		String hql = "from CallApplyInfo c where c.state ='1' and c.deleteFlag ='N' and c.responseState ='2' and c.id=?";
@@ -73,7 +86,7 @@ public class CallApplyInfoService extends BaseHibernateDao {
 	public List<CallApplyInfo> queryApplyInfoByUid(String uid) {
 		StringBuilder hql = new StringBuilder("from CallApplyInfo c where 1=1 ");
 		hql.append("and c.deleteFlag ='N' and c.state='" + ApplicationState.VALIDATION + "' and c.responseState='" + ResponseState.RESPONSED + "' ");
-		hql.append("and c.userId=? order by c.callTime desc");
+		hql.append("and c.userId=? order by c.createDate desc");
 		List<CallApplyInfo> list = this.getHibernateTemplate().find(hql.toString(), uid);
 		return list;
 	}
@@ -96,8 +109,9 @@ public class CallApplyInfoService extends BaseHibernateDao {
 			List<CommentInfo> comments = this.getHibernateTemplate().find("from CommentInfo c where c.applyId=?", apply.getId());
 			if (comments != null && comments.size() > 0) {
 				int commentLevel = comments.get(0).getLevel() != null ? comments.get(0).getLevel() : 0;
-				if(commentLevel < 4){
-					niceCount = niceCount + commentLevel;
+				//评价分数为三分，订单即为好评
+				if (commentLevel == 3) {
+					niceCount = niceCount + 1;
 				}
 			}
 		}

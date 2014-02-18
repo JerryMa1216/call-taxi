@@ -96,7 +96,7 @@ public class TaxiController {
 				map.put("message", "OK");
 				map.put("count", reTaxis.size());
 				map.put("date", new Date());
-				map.put("data", reTaxis);
+				map.put("data", convertMap(reTaxis));
 			} else {
 				map.put("state", "0");
 				map.put("message", "OK");
@@ -139,34 +139,75 @@ public class TaxiController {
 		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
 		// 根据申请的id获取申请信息
 		CallApplyInfo applyInfo = applyInfoService.getCallApplyInfoById(applyId);
+		Map<String, Object> returnMap = new HashMap<String, Object>();
 		Map<String, Object> mapReturn = null;
-		// 监控次数小于三次，可以继续监控
-		if (applyInfo.getMonitorCount() < 3) {
-			applyInfo.setMonitorCount(applyInfo.getMonitorCount() + 1);
-			// 调用GPS监控出租车位置接口
-			syncClient.sendMessage(TCPUtils.getMonitorMessage(applyId, plateNumber));
-			String returnData = syncClient.getResult();
-			mapReturn = messageHandler.handler(returnData);
-			TaxiInfo taxiInfo = (TaxiInfo) mapReturn.get(Integer.toString(GPSCommand.GPS_TAXI_MONITER));
-			Map<String, Object> returnMap = new HashMap<String, Object>();
-			returnMap.put("taxiPlateNumber", taxiInfo.getTaxiPlateNumber());
-			returnMap.put("driverName", taxiInfo.getDriverName());
-			returnMap.put("dirverPhoneNumber", taxiInfo.getDirverPhoneNumber());
-			returnMap.put("longitude", taxiInfo.getLongitude());
-			returnMap.put("latitude", taxiInfo.getLatitude());
-			returnMap.put("gpsTime", taxiInfo.getGpsTime());
-			returnMap.put("company", taxiInfo.getCompanyInfo().getName());
-			returnMap.put("speed", taxiInfo.getSpeed());
-			returnMap.put("monitorCount", applyInfo.getMonitorCount());
+		if(applyInfo.getMonitorCount() < 4){
+			try {
+				applyInfo.setMonitorCount(applyInfo.getMonitorCount() + 1);
+				// 调用GPS监控出租车位置接口
+				syncClient.sendMessage(TCPUtils.getMonitorMessage(applyId, plateNumber));
+				String responseData = null;
+				//响应消息体如果不为1005，则一直去1005消息体
+				int count = 0;
+				boolean flagOk = false;
+				while(count < 5){
+					// 获取GPS平台返回数据
+					responseData = syncClient.getResult();
+					String msg1 = responseData.substring(2);
+					String msg2 = msg1.substring(0, msg1.indexOf(">"));
+					// 消息id
+					String msgId = msg2.substring(0, 4);
+					if(msgId.equals(Integer.toString(GPSCommand.GPS_TAXI_MONITER))){
+						flagOk = true;
+						break;
+					}else{
+						count++;
+					}
+				}
+				if(flagOk){
+					mapReturn = messageHandler.handler(responseData);
+					TaxiInfo taxiInfo = (TaxiInfo) mapReturn.get(Integer.toString(GPSCommand.GPS_TAXI_MONITER));
+					this.applyInfoService.updateApplyInfo(applyInfo);
+					returnMap.put("taxiPlateNumber", taxiInfo.getTaxiPlateNumber());
+					returnMap.put("driverName", taxiInfo.getDriverName());
+					returnMap.put("dirverPhoneNumber", taxiInfo.getDirverPhoneNumber());
+					returnMap.put("longitude", taxiInfo.getLongitude());
+					returnMap.put("latitude", taxiInfo.getLatitude());
+					returnMap.put("gpsTime", taxiInfo.getGpsTime());
+					returnMap.put("company", taxiInfo.getCompanyInfo().getName());
+					returnMap.put("speed", taxiInfo.getSpeed());
+					returnMap.put("monitorCount", applyInfo.getMonitorCount());
+					map.put("state", "0");
+					map.put("message", "OK");
+					map.put("date", new Date());
+					map.put("data", returnMap);
+				}else{
+					map.put("state", "1");
+					map.put("message", "ER");
+					map.put("date", new Date());
+					map.put("data", null);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				map.put("state", "1");
+				map.put("message", "ER");
+				map.put("date", new Date());
+				map.put("data", null);
+			}
+		}else{
+			returnMap.put("taxiPlateNumber",null);
+			returnMap.put("driverName", null);
+			returnMap.put("dirverPhoneNumber", null);
+			returnMap.put("longitude", null);
+			returnMap.put("latitude", null);
+			returnMap.put("gpsTime", null);
+			returnMap.put("company", null);
+			returnMap.put("speed", null);
+			returnMap.put("monitorCount", 4);
 			map.put("state", "0");
 			map.put("message", "OK");
 			map.put("date", new Date());
 			map.put("data", returnMap);
-		} else {
-			map.put("state", "1");
-			map.put("message", "ER");
-			map.put("date", new Date());
-			map.put("data", null);
 		}
 		try {
 			response.reset();
@@ -179,5 +220,35 @@ public class TaxiController {
 		} catch (Exception e) {
 			log.error("========================系统异常>>" + e.getMessage());
 		}
+	}
+
+	/**
+	 * 周边查询数据转化
+	 * 
+	 * @param taxis
+	 * @return
+	 */
+	private List<Map<String, Object>> convertMap(List<TaxiInfo> taxis) {
+		List<Map<String, Object>> returnList = new ArrayList<Map<String, Object>>();
+		for (TaxiInfo taxi : taxis) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("id", taxi.getId());
+			map.put("taxiPlateNumber", taxi.getTaxiPlateNumber());
+			map.put("driverName", taxi.getDriverName());
+			map.put("dirverPhoneNumber", taxi.getDirverPhoneNumber());
+			map.put("breakPromiseCount", taxi.getBreakPromiseCount());
+			map.put("companyId", taxi.getCompanyId());
+			map.put("isEmpty", taxi.getIsEmpty());
+			map.put("speed", taxi.getSpeed());
+			map.put("longitude", taxi.getLongitude());
+			map.put("latitude", taxi.getLatitude());
+			map.put("gpsTime", taxi.getGpsTime());
+			map.put("createDate", taxi.getCreateDate());
+			map.put("updateDate", taxi.getUpdateDate());
+			map.put("companyInfo", taxi.getCompanyInfo());
+			map.put("callApplyInfos", null);
+			returnList.add(map);
+		}
+		return returnList;
 	}
 }

@@ -1,5 +1,7 @@
 package com.greenisland.taxi.common.utils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 
 import org.springframework.util.StringUtils;
@@ -81,14 +83,16 @@ public class TCPUtils {
 	 * @return
 	 */
 	public static String getCallApply(CallApplyInfo applyInfo, String applyId, LocationInfo location, UserInfo user) {
+		SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
 		StringBuilder callApplyMsg = new StringBuilder("<<0003,");
 		String sLocation = applyInfo.getStartLocation();
 		String eLocation = applyInfo.getEndLocation();
 		sLocation = sLocation.replaceAll(",", "");
 		eLocation = eLocation.replaceAll(",", "");
 		callApplyMsg.append(generateProcessId());
+		Date callTime = applyInfo.getCallTime();
 		callApplyMsg.append("," + applyId + "," + applyInfo.getCallType() + "," + sLocation + "," + eLocation);
-		callApplyMsg.append("," + location.getGpsLongitude() + "," + location.getGpsLatitude() + "," + applyInfo.getCallTime());
+		callApplyMsg.append("," + location.getGpsLongitude() + "," + location.getGpsLatitude() + "," + format.format(callTime));
 		callApplyMsg.append("," + applyInfo.getCallScope() + "," + user.getUserName() + "," + user.getPhoneNumber());
 		callApplyMsg.append("," + user.getAddress() + ">>");
 		return callApplyMsg.toString();

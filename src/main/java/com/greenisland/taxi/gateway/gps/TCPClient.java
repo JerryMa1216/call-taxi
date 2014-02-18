@@ -82,23 +82,25 @@ public class TCPClient extends Thread implements InitializingBean {
 				if (!isRunning) {
 					rLen = getSocket().getInputStream().read(data);
 					if (rLen > 0) {
-						log.info("================ GPS响应数据 =============");
 						resultValue = new String(data, 0, rLen, "GBK");
-						log.info(resultValue);
-						log.info("================ GPS响应数据 =============");
-
 						String msg1 = resultValue.substring(2);
 						String msg2 = msg1.substring(0, msg1.indexOf(">"));
+						log.info("===============响应消息类型==============");
 						// 消息id
 						String msgId = msg2.substring(0, 4);
-						System.err.println(msgId);
+						log.info(msgId);
+						log.info("===============响应消息类型==============");
 						if (msgId.equals(Integer.toString(GPSCommand.GPS_TAXI_RESP))) {
 							synResponse.handlerResponse(resultValue);
 						} else if (msgId.equals(Integer.toString(GPSCommand.GPS_HEARTBEAT))) {
 							log.info("================ 心跳包链路响应 ==============");
 							log.info(resultValue);
 							log.info("================ 心跳包链路响应 ==============");
-						} else {
+						} else if (msgId.equals(Integer.toString(GPSCommand.GPS_CALL_RESP))) {
+							log.info("================ 心跳包链路响应 ==============");
+							log.info(resultValue);
+							log.info("================ 心跳包链路响应 ==============");
+						}else {
 							synchronized (client) {
 								client.setResult(resultValue);
 							}

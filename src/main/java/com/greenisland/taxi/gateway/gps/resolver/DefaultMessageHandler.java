@@ -31,8 +31,6 @@ public class DefaultMessageHandler implements MessageHandler {
 			String msg2 = msg1.substring(0, msg1.indexOf(">"));
 			// 消息id
 			String msgId = msg2.substring(0, 4);
-			// 流水id
-//			String processId = msg2.substring(5, 15);
 			// 消息体
 			String body = msg2.substring(16);
 			String[] content = body.split(",");

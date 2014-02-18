@@ -41,11 +41,16 @@ public class SyncResponse {
 			int orderCount;
 			String applyId = (String) mapTaxi.get("applyId");
 			String[] ids = applyId.split("-");
+			//设备类型
 			String mechineType = ids[1];
+			//百度云推送userId
 			String userId = ids[2];
+			//百度云推送channelId
 			String channelId = ids[3];
+			//叫车类型
 			String callType = ids[4];
 			TaxiInfo respTaxi = (TaxiInfo) mapTaxi.get(Integer.toString(GPSCommand.GPS_TAXI_RESP));
+			//ids[0]申请id
 			CallApplyInfo applyInfo = callApplyInfoService.getApplyInfoValidated(ids[0]);
 			CompanyInfo respCompany = respTaxi.getCompanyInfo();
 			if (applyInfo != null) {
@@ -61,7 +66,12 @@ public class SyncResponse {
 						respTaxi.setBreakPromiseCount(0);
 						respTaxi.setCreateDate(new Date());
 						taxiId = taxiInfoService.saveTaxiInfo(respTaxi);
+					//出租车存在则更新出租车坐标
 					} else {
+						//更新出租车坐标
+						taxi.setLongitude(respTaxi.getLongitude());
+						taxi.setLatitude(respTaxi.getLatitude());
+						taxiInfoService.updateTaxiInfo(taxi);
 						taxiId = taxi.getId();
 					}
 				} else {
@@ -75,11 +85,16 @@ public class SyncResponse {
 						respTaxi.setCreateDate(new Date());
 						taxiId = taxiInfoService.saveTaxiInfo(respTaxi);
 					} else {
+						//更新出租车坐标
+						taxi.setLongitude(respTaxi.getLongitude());
+						taxi.setLatitude(respTaxi.getLatitude());
+						taxiInfoService.updateTaxiInfo(taxi);
 						taxiId = taxi.getId();
 					}
 				}
 				// 更新订单信息
 				applyInfo.setTaxiId(taxiId);
+				applyInfo.setDirverPhoneNumber(respTaxi.getDirverPhoneNumber());
 				// 更新订单响应状态为“已响应” 1
 				applyInfo.setResponseState(ResponseState.RESPONSED);
 				applyInfo.setUpdateDate(new Date());
@@ -87,36 +102,35 @@ public class SyncResponse {
 				// 根据出租车id查询订单信息
 				List<CallApplyInfo> applies = callApplyInfoService.getApplyInfoByTaxiId(taxiId);
 				orderCount = applies != null && applies.size() > 0 ? applies.size() : 0;
+				//好评数
 				niceCount = callApplyInfoService.getNiceCount(taxiId);
 				// 调用推送
 				if (mechineType.equals(MechineType.ANDROID)) {
-					pushClient.pushSinglerUserAndroid(company.getName(), niceCount, orderCount, userId, channelId, ids[0], callType, respTaxi);
+					pushClient.pushSinglerUserAndroid(company != null ? company.getName() : null, niceCount, orderCount, userId, channelId, ids[0],
+							callType, respTaxi);
 				} else {
-					pushClient.pushSingleUserIOS(userId, channelId, ids[0],callType);
+					pushClient.pushSingleUserIOS(userId, channelId, ids[0], callType);
 				}
 			}
 		}
 	}
 
 	private Map<String, Object> handler(String message) {
-		
+
 		Map<String, Object> map = new HashMap<String, Object>();
 		if (StringUtils.hasText(message)) {
 			String msg1 = message.substring(2);
 			String msg2 = msg1.substring(0, msg1.indexOf(">"));
-			// 消息id
-			// String msgId = msg2.substring(0, 4);
-			// 流水id
-			// String processId = msg2.substring(5, 15);
-			// 消息体
 			String body = msg2.substring(16);
 			String[] content = body.split(",");
 			String respBody = new String();
-
+			// 订单申请id
 			String applyId = content[0];
 			TaxiInfo respTaxi = new TaxiInfo();
 			CompanyInfo respCompany = new CompanyInfo();
+			// 响应消息体
 			respBody = content[1];
+			// 拆分为字符串数组
 			String[] respTaxis = respBody.split("\\|");
 			respTaxi.setTaxiPlateNumber(respTaxis[0]);
 			respTaxi.setLongitude(respTaxis[1]);

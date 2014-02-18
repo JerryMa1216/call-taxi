@@ -1,6 +1,7 @@
 package com.greenisland.taxi.controller;
 
 import java.io.PrintWriter;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,13 +15,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.greenisland.taxi.common.constant.ApplicationState;
 import com.greenisland.taxi.common.constant.CommentState;
-import com.greenisland.taxi.common.constant.GPSCommand;
 import com.greenisland.taxi.common.constant.ResponseState;
 import com.greenisland.taxi.common.constant.TradeState;
 import com.greenisland.taxi.common.utils.TCPUtils;
@@ -31,7 +32,6 @@ import com.greenisland.taxi.domain.LocationInfo;
 import com.greenisland.taxi.domain.TaxiInfo;
 import com.greenisland.taxi.domain.UserInfo;
 import com.greenisland.taxi.gateway.gps.SyncClient;
-import com.greenisland.taxi.gateway.gps.resolver.MessageHandler;
 import com.greenisland.taxi.manager.CallApplyInfoService;
 import com.greenisland.taxi.manager.CommentInfoService;
 import com.greenisland.taxi.manager.CompanyInfoService;
@@ -57,8 +57,8 @@ public class CallApplyController {
 	private LocationInfoService locationInfoService;
 	@Resource
 	private CallApplyInfoService callApplyInfoService;
-	@Resource
-	private MessageHandler messageHandler;
+//	@Resource
+//	private MessageHandler messageHandler;
 	@Resource
 	private CommentInfoService commentInfoService;
 	@Resource
@@ -91,58 +91,83 @@ public class CallApplyController {
 			@RequestParam String callScope, @RequestParam String callDistance, @RequestParam String mechineType, @RequestParam String sLoca,
 			@RequestParam String eLoca, @RequestParam String longitude, @RequestParam String latitude, @RequestParam String name,
 			@RequestParam String age, HttpServletResponse response) throws Exception {
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		String applyId = "";
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
-		Map<String, Object> mapCall = null;// 调用接口返回值
+//		Map<String, Object> mapCall = null;// 调用接口返回值
 		// 根据用户手机号获取用户信息
 		UserInfo userInfo = userInfoService.getUserInfoByPhoneNumber(phoneNumber);
-		// 保存用户叫车位置，方便后台管理系统做数据分析
-		LocationInfo location = new LocationInfo();
-		location.setCreateDate(new Date());
-		location.setGpsLatitude(latitude);
-		location.setGpsLongitude(longitude);
-		location.setGpsTime(new Date());
-		location.setUserId(userInfo.getId());
-		locationInfoService.saveLocationInfo(location);
-		// 新增打车请求记录
-		CallApplyInfo applyInfo = new CallApplyInfo();
-		applyInfo.setUserId(userInfo.getId());
-		applyInfo.setCallLength(Integer.parseInt(callDistance));// 叫车距离
-		applyInfo.setCallScope(Integer.parseInt(callScope));// 叫车范围
-		applyInfo.setCallTime(format.parse(callTime));// 叫车时间
-		applyInfo.setCallType(callType);// 叫车类型 1即时叫车 2预约叫车
-		applyInfo.setEndLocation(eLoca);// 目的地
-		applyInfo.setStartLocation(sLoca);// 出发地
-		applyInfo.setMechineType(mechineType);// 设备类型
-		applyInfo.setCreateDate(new Date());
-		applyInfo.setState(ApplicationState.VALIDATION);// 请求状态
-		applyInfo.setIsGetOn("0");// 是否上车
-		applyInfo.setResponseState(ResponseState.WAIT_RESPONSE);// 是否响应
-		applyInfo.setTradeState(TradeState.WAIT_FINISH);// 交易状态
-		applyInfo.setMonitorCount(0);// 监控次数
-		applyInfo.setIsComment("0");// 是否评价
-		applyInfo.setDeleteFlag("N");// 未删除
-		applyInfo.setGpsLongitude(longitude);
-		applyInfo.setGpsLatitude(latitude);
-		String applyId = callApplyInfoService.saveCallApplyInfo(applyInfo);
+		// 爽约次数
+		int breakPromisecount = userInfo.getBreakPromiseCount();
+		// 爽约时间
+		Date breakPromiseDate = userInfo.getBreakPromissDate();
+		boolean callFlag = true;
+		// 爽约次数不为0
+		if (breakPromisecount != 0) {
+			Date nowDate = df.parse(df.format(new Date()));
+			breakPromiseDate = df.parse(df.format(breakPromiseDate));
+			long diff = nowDate.getTime() - breakPromiseDate.getTime();
+			long days = diff / (1000 * 60 * 60 * 24);
+			// 爽约次数1次，冻结一周
+			if (breakPromisecount == 1) {
+				if (days < 8) {
+					callFlag = false;
+				}
+			} else if (breakPromisecount == 2) {
+				if (days < 15) {
+					callFlag = false;
+				}
+			} else {
+				// 爽约次数为3次永久冻结
+				callFlag = false;
+			}
+		}
+		// 是否可以叫车
+		if (callFlag) {
+			// 保存用户叫车位置，方便后台管理系统做数据分析
+			LocationInfo location = new LocationInfo();
+			location.setCreateDate(new Date());
+			location.setGpsLatitude(latitude);
+			location.setGpsLongitude(longitude);
+			location.setGpsTime(new Date());
+			location.setUserId(userInfo.getId());
+			locationInfoService.saveLocationInfo(location);
+			// 新增打车请求记录
+			CallApplyInfo applyInfo = new CallApplyInfo();
+			applyInfo.setUserId(userInfo.getId());
+			applyInfo.setCallLength(Integer.parseInt(callDistance));// 叫车距离
+			applyInfo.setCallScope(Integer.parseInt(callScope));// 叫车范围
+			applyInfo.setCallTime(format.parse(callTime));// 叫车时间
+			applyInfo.setCallType(callType);// 叫车类型 1即时叫车 2预约叫车
+			applyInfo.setEndLocation("测试目的地");// 目的地
+			applyInfo.setStartLocation(sLoca);// 出发地
+			applyInfo.setMechineType(mechineType);// 设备类型
+			applyInfo.setCreateDate(new Date());
+			applyInfo.setState(ApplicationState.VALIDATION);// 请求状态
+			applyInfo.setIsGetOn("0");// 是否上车
+			applyInfo.setResponseState(ResponseState.WAIT_RESPONSE);// 是否响应
+			applyInfo.setTradeState(TradeState.WAIT_FINISH);// 交易状态
+			applyInfo.setMonitorCount(0);// 监控次数
+			applyInfo.setIsComment("0");// 是否评价
+			applyInfo.setDeleteFlag("N");// 未删除
+			applyInfo.setGpsLongitude(longitude);
+			applyInfo.setGpsLatitude(latitude);
+			applyId = callApplyInfoService.saveCallApplyInfo(applyInfo);
 
-		// 调用GPS平台接口发送打车请求，name为推送中的userId，age为推送中的channelId
-		String requestMsg = TCPUtils.getCallApply(applyInfo, applyId + "-" + mechineType + "-" + name + "-" + age + "-" + callType, location,
-				userInfo);
-		boolean flag = syncClient.sendMessage(requestMsg);
-		if (flag) {
-			// 获取GPS平台返回数据
-			String responseData = syncClient.getResult();
-			mapCall = messageHandler.handler(responseData);
-			String returnData = (String) mapCall.get(GPSCommand.GPS_CALL_RESP + "");
-			if (!returnData.equals("ER")) {
-				// 叫车请求发送成功
+			// 调用GPS平台接口发送打车请求，name为推送中的userId，age为推送中的channelId
+			String requestMsg = TCPUtils.getCallApply(applyInfo, applyId + "-" + mechineType + "-" + name + "-" + age + "-" + callType, location,
+					userInfo);
+			try {
+				syncClient.sendMessage(requestMsg);
+				//叫车请求发送成功
 				map.put("state", 0);
 				map.put("message", "OK");
 				map.put("date", new Date());
-				map.put("data", returnData.substring(0, returnData.indexOf("-")));
-			} else {
+				map.put("data", applyId);
+			} catch (Exception e) {
+				e.printStackTrace();
 				CallApplyInfo apply = callApplyInfoService.getCallApplyInfoById(applyId);
 				apply.setDeleteFlag("Y");
 				apply.setState(ApplicationState.INVALIDATION);
@@ -152,17 +177,65 @@ public class CallApplyController {
 				map.put("date", new Date());
 				map.put("data", null);
 			}
+//			boolean flag = syncClient.sendMessage(requestMsg);
+//			if (flag) {
+//				String responseData = null;
+//				//响应消息体如果不为1003，则一直去1003消息体
+//				boolean flagOk = true;
+//				while(flagOk){
+//					// 获取GPS平台返回数据
+//					responseData = syncClient.getResult();
+//					String msg1 = responseData.substring(2);
+//					String msg2 = msg1.substring(0, msg1.indexOf(">"));
+//					// 消息id
+//					String msgId = msg2.substring(0, 4);
+//					log.info(">>>>>>>>>:"+msgId);
+//					if(msgId.equals(Integer.toString(GPSCommand.GPS_CALL_RESP))){
+//						flagOk = false;
+//					}
+//				}
+//				log.info(responseData);
+//				mapCall = messageHandler.handler(responseData);
+//				String returnData = (String) mapCall.get(GPSCommand.GPS_CALL_RESP + "");
+//				if (StringUtils.hasText(returnData)) {
+//					if (!returnData.equals("ER")) {
+//						// 叫车请求发送成功
+//						map.put("state", 0);
+//						map.put("message", "OK");
+//						map.put("date", new Date());
+//						map.put("data", returnData.substring(0, returnData.indexOf("-")));
+//					} else {
+//						CallApplyInfo apply = callApplyInfoService.getCallApplyInfoById(applyId);
+//						apply.setDeleteFlag("Y");
+//						apply.setState(ApplicationState.INVALIDATION);
+//						callApplyInfoService.updateApplyInfo(apply);
+//						map.put("state", 1);
+//						map.put("message", "ER");
+//						map.put("date", new Date());
+//						map.put("data", null);
+//					}
+//				} else {
+//					applyInfo.setId(applyId);
+//					applyInfo.setDeleteFlag("Y");
+//					applyInfo.setState("0");
+//					this.callApplyInfoService.updateApplyInfo(applyInfo);
+//				}
+//			} else {
+//				applyInfo.setId(applyId);
+//				applyInfo.setDeleteFlag("Y");
+//				applyInfo.setState("0");
+//				this.callApplyInfoService.updateApplyInfo(applyInfo);
+//				map.put("state", 1);
+//				map.put("message", "ER");
+//				map.put("date", new Date());
+//				map.put("data", null);
+//			}
 		} else {
-			applyInfo.setId(applyId);
-			applyInfo.setDeleteFlag("Y");
-			applyInfo.setState("0");
-			this.callApplyInfoService.updateApplyInfo(applyInfo);
-			map.put("state", 1);
+			map.put("state", 2);
 			map.put("message", "ER");
 			map.put("date", new Date());
 			map.put("data", null);
 		}
-
 		try {
 			response.reset();
 			response.setCharacterEncoding("UTF-8");
@@ -194,7 +267,8 @@ public class CallApplyController {
 		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
 		CallApplyInfo applyInfo = callApplyInfoService.getCallApplyInfo(applyId);
 		if (applyInfo != null) {
-			applyInfo.setDeleteFlag("Y");
+			// 司机已抢答，用户取消将订单有效状态置为无效
+			applyInfo.setDeleteFlag("N");
 			applyInfo.setState(ApplicationState.INVALIDATION);
 			callApplyInfoService.updateApplyInfo(applyInfo);
 			UserInfo userInfo = userInfoService.getUserInfoById(uid);
@@ -284,7 +358,7 @@ public class CallApplyController {
 				apply.setCompany("");
 			}
 		}
-		map.put("state", 0);
+		map.put("state", "0");
 		map.put("message", "OK");
 		map.put("date", new Date());
 		map.put("data", convertMap(list));
@@ -313,16 +387,21 @@ public class CallApplyController {
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
 		CallApplyInfo applyInfo = callApplyInfoService.getCallApplyInfoById(applyId);
-		int orderCount;
-		int niceCount;
+		int orderCount = 0;
+		int niceCount = 0;
+		TaxiInfo taxiInfo = new TaxiInfo();
+		CompanyInfo companyInfo = new CompanyInfo();
+		List<CallApplyInfo> applies = new ArrayList<CallApplyInfo>();
 		if (applyInfo != null) {
 			String taxiId = applyInfo.getTaxiId();
-			TaxiInfo taxiInfo = taxiInfoService.getTaxiInfoById(taxiId);
-			CompanyInfo companyInfo = companyInfoService.getCompanyById(taxiInfo.getCompanyId());
-			// 根据出租车id查询订单信息
-			List<CallApplyInfo> applies = callApplyInfoService.getApplyInfoByTaxiId(taxiId);
+			if (StringUtils.hasText(taxiId)) {
+				taxiInfo = taxiInfoService.getTaxiInfoById(taxiId);
+				companyInfo = companyInfoService.getCompanyById(taxiInfo.getCompanyId());
+				// 根据出租车id查询订单信息，好评数
+				niceCount = callApplyInfoService.getNiceCount(taxiId);
+				applies = callApplyInfoService.getApplyInfoByTaxiId(taxiId);
+			}
 			orderCount = applies != null && applies.size() > 0 ? applies.size() : 0;
-			niceCount = callApplyInfoService.getNiceCount(taxiId);
 			map.put("state", "0");
 			map.put("message", "OK");
 			map.put("date", new Date());
@@ -412,18 +491,20 @@ public class CallApplyController {
 		returnMap.put("startLocation", applyInfo.getStartLocation());
 		returnMap.put("endLocation", applyInfo.getEndLocation());
 		returnMap.put("callTime", applyInfo.getCallTime());
-		returnMap.put("tradeState", applyInfo.getTradeState());
+		// 1,已抢答 2，等待抢答 0，已关闭
+		returnMap.put("responseState", applyInfo.getResponseState());
 		returnMap.put("isComment", applyInfo.getIsComment());
 		returnMap.put("monitorCount", applyInfo.getMonitorCount());
-		returnMap.put("longitude", taxiInfo.getLongitude());
-		returnMap.put("latitude", taxiInfo.getLatitude());
-		returnMap.put("taxiId", taxiInfo.getId());
+		returnMap.put("longitude", taxiInfo != null ? taxiInfo.getLongitude() : null);
+		returnMap.put("latitude", taxiInfo != null ? taxiInfo.getLatitude() : null);
+		returnMap.put("taxiId", taxiInfo != null ? taxiInfo.getId() : null);
 		returnMap.put("orderCount", orderCount);
 		returnMap.put("niceCount", niceCount);
-		returnMap.put("taxiPlateNumber", taxiInfo.getTaxiPlateNumber());
-		returnMap.put("driverName", taxiInfo.getDriverName());
-		returnMap.put("driverPhoneNumber", taxiInfo.getDirverPhoneNumber());
+		returnMap.put("taxiPlateNumber", taxiInfo != null ? taxiInfo.getTaxiPlateNumber() : null);
+		returnMap.put("driverName", taxiInfo != null ? taxiInfo.getDriverName() : null);
+		returnMap.put("driverPhoneNumber", taxiInfo != null ? taxiInfo.getDirverPhoneNumber() : null);
 		returnMap.put("company", companyName);
+		returnMap.put("callType", applyInfo.getCallType());
 		return returnMap;
 	}
 
