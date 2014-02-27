@@ -55,7 +55,7 @@ public class MsgUtils {
 	public static byte[] getAuthenticatorSource(String spId, String secret, String timestamp) {
 		try {
 			MessageDigest md5 = MessageDigest.getInstance("MD5");
-			//用户鉴别源地址
+			// 用户鉴别源地址
 			byte[] data = (spId + "\0\0\0\0\0\0\0\0\0" + secret + timestamp).getBytes();
 			return md5.digest(data);
 		} catch (Exception e) {

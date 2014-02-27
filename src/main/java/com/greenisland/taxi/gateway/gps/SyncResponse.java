@@ -16,10 +16,12 @@ import com.greenisland.taxi.common.constant.MechineType;
 import com.greenisland.taxi.common.constant.ResponseState;
 import com.greenisland.taxi.domain.CallApplyInfo;
 import com.greenisland.taxi.domain.CompanyInfo;
+import com.greenisland.taxi.domain.SystemLog;
 import com.greenisland.taxi.domain.TaxiInfo;
 import com.greenisland.taxi.gateway.push.PushClient;
 import com.greenisland.taxi.manager.CallApplyInfoService;
 import com.greenisland.taxi.manager.CompanyInfoService;
+import com.greenisland.taxi.manager.SystemLogService;
 import com.greenisland.taxi.manager.TaxiInfoService;
 
 @Component
@@ -32,25 +34,35 @@ public class SyncResponse {
 	private TaxiInfoService taxiInfoService;
 	@Resource
 	private PushClient pushClient;
+	@Resource
+	private SystemLogService systemLogService;
 
 	public synchronized void handlerResponse(String responseData) {
 		Map<String, Object> mapTaxi = null;// 调用接口返回值
+		SystemLog log = new SystemLog();
 		mapTaxi = handler(responseData);
 		if (mapTaxi != null) {
 			int niceCount;
 			int orderCount;
 			String applyId = (String) mapTaxi.get("applyId");
 			String[] ids = applyId.split("-");
-			//设备类型
+			// 设备类型
 			String mechineType = ids[1];
-			//百度云推送userId
+			// 百度云推送userId
 			String userId = ids[2];
-			//百度云推送channelId
+			// 百度云推送channelId
 			String channelId = ids[3];
-			//叫车类型
+			// 叫车类型
 			String callType = ids[4];
 			TaxiInfo respTaxi = (TaxiInfo) mapTaxi.get(Integer.toString(GPSCommand.GPS_TAXI_RESP));
-			//ids[0]申请id
+			log.setApplyId(ids[0]);
+			log.setCallType(callType);
+			log.setContent(responseData);
+			log.setCreateDate(new Date());
+			log.setMechineType(mechineType);
+			log.setTaxiPlatenumber(respTaxi.getTaxiPlateNumber());
+			systemLogService.save(log);
+			// ids[0]申请id
 			CallApplyInfo applyInfo = callApplyInfoService.getApplyInfoValidated(ids[0]);
 			CompanyInfo respCompany = respTaxi.getCompanyInfo();
 			if (applyInfo != null) {
@@ -66,9 +78,9 @@ public class SyncResponse {
 						respTaxi.setBreakPromiseCount(0);
 						respTaxi.setCreateDate(new Date());
 						taxiId = taxiInfoService.saveTaxiInfo(respTaxi);
-					//出租车存在则更新出租车坐标
+						// 出租车存在则更新出租车坐标
 					} else {
-						//更新出租车坐标
+						// 更新出租车坐标
 						taxi.setLongitude(respTaxi.getLongitude());
 						taxi.setLatitude(respTaxi.getLatitude());
 						taxiInfoService.updateTaxiInfo(taxi);
@@ -85,7 +97,7 @@ public class SyncResponse {
 						respTaxi.setCreateDate(new Date());
 						taxiId = taxiInfoService.saveTaxiInfo(respTaxi);
 					} else {
-						//更新出租车坐标
+						// 更新出租车坐标
 						taxi.setLongitude(respTaxi.getLongitude());
 						taxi.setLatitude(respTaxi.getLatitude());
 						taxiInfoService.updateTaxiInfo(taxi);
@@ -102,7 +114,7 @@ public class SyncResponse {
 				// 根据出租车id查询订单信息
 				List<CallApplyInfo> applies = callApplyInfoService.getApplyInfoByTaxiId(taxiId);
 				orderCount = applies != null && applies.size() > 0 ? applies.size() : 0;
-				//好评数
+				// 好评数
 				niceCount = callApplyInfoService.getNiceCount(taxiId);
 				// 调用推送
 				if (mechineType.equals(MechineType.ANDROID)) {

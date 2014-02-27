@@ -17,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 
 import sun.misc.BASE64Decoder;
 
@@ -86,7 +87,7 @@ public class LoginController {
 					Integer capCount = userInfo.getRequestCapCount();
 					if (capCount < Integer.parseInt(Configure.getString("count"))) {
 						try {
-							message.append("余杭快的，登陆验证码为： " + captchaCode);
+							message.append("余杭的士，登陆验证码为： " + captchaCode);
 							flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
 							if (flag) {
 								userInfo.setCaptcha(captchaCode);
@@ -101,7 +102,7 @@ public class LoginController {
 								map.put("data", null);
 							}
 						} catch (Exception e) {
-							log.error("=================系统异常>>" + e.getMessage());
+							log.error("系统异常>>" + e.getMessage());
 							map.put("state", "1");
 							map.put("message", "异常失败");
 							map.put("date", new Date());
@@ -116,7 +117,7 @@ public class LoginController {
 				} else {
 					// 新用户
 					try {
-						message.append("余杭快的，登陆验证码为： " + captchaCode);
+						message.append("余杭的士，登陆验证码为： " + captchaCode);
 						flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
 						if (flag) {
 							UserInfo newUser = new UserInfo();
@@ -135,7 +136,7 @@ public class LoginController {
 							map.put("data", null);
 						}
 					} catch (Exception e) {
-						log.error("==================系统异常>>" + e.getMessage());
+						log.error("系统异常>>" + e.getMessage());
 						map.put("state", "1");
 						map.put("message", "异常失败");
 						map.put("date", new Date());
@@ -155,7 +156,7 @@ public class LoginController {
 				Integer capCount = userInfo.getRequestCapCount();
 				if (capCount < Integer.parseInt(Configure.getString("count"))) {
 					try {
-						message.append("余杭快的，登陆验证码为： " + captchaCode);
+						message.append("余杭的士，登陆验证码为： " + captchaCode);
 						flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
 						if (flag) {
 							userInfo.setCaptcha(captchaCode);
@@ -171,7 +172,7 @@ public class LoginController {
 							map.put("data", null);
 						}
 					} catch (Exception e) {
-						log.error("=======================系统异常>>" + e.getMessage());
+						log.error("系统异常>>" + e.getMessage());
 						map.put("state", "1");
 						map.put("message", "异常失败");
 						map.put("date", new Date());
@@ -185,7 +186,7 @@ public class LoginController {
 				}
 			} else {
 				try {
-					message.append("余杭快的，登陆验证码为： " + captchaCode);
+					message.append("余杭的士，登陆验证码为： " + captchaCode);
 					flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
 					if (flag) {
 						UserInfo newUser = new UserInfo();
@@ -369,5 +370,16 @@ public class LoginController {
 		} catch (Exception e) {
 			log.error("系统异常>>" + e.getMessage());
 		}
+	}
+
+	/**
+	 * 页面跳转
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/get_store", method = RequestMethod.GET)
+	public ModelAndView getStore() {
+		String storeUrl = Configure.getString("storeUrl");
+		return new ModelAndView("redirect:"+storeUrl);
 	}
 }

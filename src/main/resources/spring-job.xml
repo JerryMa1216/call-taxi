@@ -34,7 +34,8 @@
 
 	<bean id="msgActivityTimer" class="org.springframework.scheduling.quartz.JobDetailBean">
 		<property name="jobClass">
-			<value>com.greenisland.taxi.gateway.cmpp.util.MsgActivityTimer</value>
+			<value>com.greenisland.taxi.gateway.cmpp.util.MsgActivityTimer
+			</value>
 		</property>
 		<property name="applicationContextJobDataKey" value="applicationContext" />
 		<property name="jobDataAsMap">

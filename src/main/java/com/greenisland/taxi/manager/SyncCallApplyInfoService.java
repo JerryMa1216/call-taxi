@@ -23,7 +23,7 @@ public class SyncCallApplyInfoService {
 
 	public synchronized boolean updateApplyState(String applyId) {
 		try {
-			log.info("===============开始倒计时任务==============");
+			log.info("=======开始倒计时任务======");
 			Thread.sleep(60000);
 			CallApplyInfo applyInfo = this.applyInfoService.getCallApplyInfoById(applyId);
 			String responseState = applyInfo.getResponseState();

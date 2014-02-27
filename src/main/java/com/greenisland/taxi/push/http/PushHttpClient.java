@@ -2,8 +2,6 @@ package com.greenisland.taxi.push.http;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -11,6 +9,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
 
 import com.greenisland.taxi.push.auth.PushCredentials;
 import com.greenisland.taxi.push.auth.PushSigner;
@@ -28,7 +27,7 @@ import com.greenisland.taxi.push.util.PushServiceException;
  *
  */
 public class PushHttpClient {
-	private static final Log log = LogFactory.getLog(PushHttpClient.class);
+	private static final Logger logger = Logger.getLogger(PushHttpClient.class);
 	
 	private HttpClient httpClient;
 	private HttpRequestFactory httpRequestFactory = new HttpRequestFactory();
@@ -68,11 +67,11 @@ public class PushHttpClient {
 		pushHttpRequest.setHttpMethod(originalRequest.getHttpMethod());
 		
 		// sign
-		log.trace("begin sign");
+		logger.trace("begin sign");
 		PushSigner.sign(pushHttpRequest.getOriginalRequest(), pushHttpRequest, credentials);
-		log.trace("after sign");
+		logger.trace("after sign");
 		
-		log.info("httpRequest:"+pushHttpRequest);
+		logger.info("httpRequest:"+pushHttpRequest);
 		HttpRequestBase httpRequest = this.httpRequestFactory.createHttpRequestBase(pushHttpRequest);
 		this.httpClient = this.clientFactory.createHttpClient();
 		HttpResponse httpResponse;

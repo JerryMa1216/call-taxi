@@ -28,6 +28,7 @@ public class CompanyInfoService extends BaseHibernateDao {
 		List<CompanyInfo> list = this.getHibernateTemplate().find(hql, name);
 		return list != null && list.size() > 0 ? list.get(0) : null;
 	}
+
 	@SuppressWarnings("unchecked")
 	public CompanyInfo getCompanyById(String id) {
 		String hql = "from CompanyInfo c where c.id =?";

@@ -41,6 +41,7 @@ public class CallApplyInfoService extends BaseHibernateDao {
 
 	/**
 	 * 取消已响应的订单查询
+	 * 
 	 * @param id
 	 * @return
 	 */
@@ -109,7 +110,7 @@ public class CallApplyInfoService extends BaseHibernateDao {
 			List<CommentInfo> comments = this.getHibernateTemplate().find("from CommentInfo c where c.applyId=?", apply.getId());
 			if (comments != null && comments.size() > 0) {
 				int commentLevel = comments.get(0).getLevel() != null ? comments.get(0).getLevel() : 0;
-				//评价分数为三分，订单即为好评
+				// 评价分数为三分，订单即为好评
 				if (commentLevel == 3) {
 					niceCount = niceCount + 1;
 				}

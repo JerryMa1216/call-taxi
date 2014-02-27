@@ -183,7 +183,8 @@ public class MsgContainer {
 			submit.setTpUdhi((byte) 0x00);// GSM协议类型
 			submit.setMsgFmt((byte) 0x0f);// 信息格式
 			submit.setMsgSrc(Configure.getString("spId"));// 信息内容来源（SP的企业代码）
-			submit.setSrcId(Configure.getString("serviceId"));// 源号码，SP的服务代码或前缀为服务代码的长号码, 网关将该号码完整的填到SMPP协议Submit_SM消息相应的source_addr字段，
+			submit.setSrcId(Configure.getString("serviceId"));// 源号码，SP的服务代码或前缀为服务代码的长号码,
+																// 网关将该号码完整的填到SMPP协议Submit_SM消息相应的source_addr字段，
 			submit.setDestTerminalId(cusMsisdn);// 接受短信的MSISDN号码
 			submit.setMsgLength((byte) msgByte.length);
 			submit.setMsgContent(msgByte);

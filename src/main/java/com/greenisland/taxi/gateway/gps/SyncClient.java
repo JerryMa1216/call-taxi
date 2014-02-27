@@ -43,7 +43,11 @@ public class SyncClient {
 	}
 
 	public synchronized boolean sendMessage(String message) {
-		boolean flag = tcpClient.sendMessage(tcpClient.getSocket(), message);
+		boolean flag = false;
+		//socket为空时，不发送任何数据
+		if(tcpClient.getSocket() != null){
+			flag = tcpClient.sendMessage(tcpClient.getSocket(), message);
+		}
 		return flag;
 	}
 }

@@ -27,8 +27,8 @@ public class CallApplyThread extends Thread {
 	public void run() {
 		super.run();
 		try {
-			log.info("===============开始倒计时任务==============");
-			Thread.sleep(85000);
+			log.info("======开始倒计时任务======");
+			Thread.sleep(29000);
 			CallApplyInfo applyInfo = this.applyInfoService.getCallApplyInfoById(applyId);
 			if (applyInfo != null) {
 				String deleteFlag = applyInfo.getDeleteFlag();
@@ -41,7 +41,7 @@ public class CallApplyThread extends Thread {
 				}
 			}
 		} catch (Exception e) {
-			log.info("==============倒计时任务处理异常============");
+			log.info("=====倒计时任务处理异常=====");
 			e.printStackTrace();
 		}
 	}

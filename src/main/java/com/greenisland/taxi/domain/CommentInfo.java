@@ -84,6 +84,7 @@ public class CommentInfo {
 	public void setUpdateDate(Date updateDate) {
 		this.updateDate = updateDate;
 	}
+
 	@Transient
 	public CallApplyInfo getApplyInfo() {
 		return applyInfo;

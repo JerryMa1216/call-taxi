@@ -57,8 +57,6 @@ public class CallApplyController {
 	private LocationInfoService locationInfoService;
 	@Resource
 	private CallApplyInfoService callApplyInfoService;
-//	@Resource
-//	private MessageHandler messageHandler;
 	@Resource
 	private CommentInfoService commentInfoService;
 	@Resource
@@ -76,12 +74,9 @@ public class CallApplyController {
 	 * @param callType
 	 * @param callScope
 	 * @param callDistance
-	 * @param mechineType
-	 *            设备类型 1，Andriod 2，ios
-	 * @param sLoca
-	 *            起点位置
-	 * @param eLoca
-	 *            重点位置
+	 * @param mechineType 设备类型 1，Andriod 2，ios
+	 * @param sLoca 起点位置
+	 * @param eLoca 重点位置
 	 * @param longitude
 	 * @param latitude
 	 * @throws Exception
@@ -96,7 +91,7 @@ public class CallApplyController {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
-//		Map<String, Object> mapCall = null;// 调用接口返回值
+		// Map<String, Object> mapCall = null;// 调用接口返回值
 		// 根据用户手机号获取用户信息
 		UserInfo userInfo = userInfoService.getUserInfoByPhoneNumber(phoneNumber);
 		// 爽约次数
@@ -161,7 +156,7 @@ public class CallApplyController {
 					userInfo);
 			try {
 				syncClient.sendMessage(requestMsg);
-				//叫车请求发送成功
+				// 叫车请求发送成功
 				map.put("state", 0);
 				map.put("message", "OK");
 				map.put("date", new Date());
@@ -177,59 +172,6 @@ public class CallApplyController {
 				map.put("date", new Date());
 				map.put("data", null);
 			}
-//			boolean flag = syncClient.sendMessage(requestMsg);
-//			if (flag) {
-//				String responseData = null;
-//				//响应消息体如果不为1003，则一直去1003消息体
-//				boolean flagOk = true;
-//				while(flagOk){
-//					// 获取GPS平台返回数据
-//					responseData = syncClient.getResult();
-//					String msg1 = responseData.substring(2);
-//					String msg2 = msg1.substring(0, msg1.indexOf(">"));
-//					// 消息id
-//					String msgId = msg2.substring(0, 4);
-//					log.info(">>>>>>>>>:"+msgId);
-//					if(msgId.equals(Integer.toString(GPSCommand.GPS_CALL_RESP))){
-//						flagOk = false;
-//					}
-//				}
-//				log.info(responseData);
-//				mapCall = messageHandler.handler(responseData);
-//				String returnData = (String) mapCall.get(GPSCommand.GPS_CALL_RESP + "");
-//				if (StringUtils.hasText(returnData)) {
-//					if (!returnData.equals("ER")) {
-//						// 叫车请求发送成功
-//						map.put("state", 0);
-//						map.put("message", "OK");
-//						map.put("date", new Date());
-//						map.put("data", returnData.substring(0, returnData.indexOf("-")));
-//					} else {
-//						CallApplyInfo apply = callApplyInfoService.getCallApplyInfoById(applyId);
-//						apply.setDeleteFlag("Y");
-//						apply.setState(ApplicationState.INVALIDATION);
-//						callApplyInfoService.updateApplyInfo(apply);
-//						map.put("state", 1);
-//						map.put("message", "ER");
-//						map.put("date", new Date());
-//						map.put("data", null);
-//					}
-//				} else {
-//					applyInfo.setId(applyId);
-//					applyInfo.setDeleteFlag("Y");
-//					applyInfo.setState("0");
-//					this.callApplyInfoService.updateApplyInfo(applyInfo);
-//				}
-//			} else {
-//				applyInfo.setId(applyId);
-//				applyInfo.setDeleteFlag("Y");
-//				applyInfo.setState("0");
-//				this.callApplyInfoService.updateApplyInfo(applyInfo);
-//				map.put("state", 1);
-//				map.put("message", "ER");
-//				map.put("date", new Date());
-//				map.put("data", null);
-//			}
 		} else {
 			map.put("state", 2);
 			map.put("message", "ER");
@@ -245,7 +187,7 @@ public class CallApplyController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("=================系统异常>>" + e.getMessage());
+			log.error("系统异常>>" + e.getMessage());
 		}
 		// 开启一个倒计时线程，时间到将新增申请置位无效
 		new CallApplyThread(callApplyInfoService, applyId);
@@ -424,8 +366,7 @@ public class CallApplyController {
 	 * 评价司机
 	 * 
 	 * @param applyId
-	 * @param level
-	 *            小于5 已上车 ，大于5 未上车
+	 * @param level 小于5 已上车 ，大于5 未上车
 	 * @param content
 	 * @param response
 	 * @param canceContent

@@ -28,7 +28,6 @@ public class TCPClient extends Thread implements InitializingBean {
 	private SyncClient client;
 	@Resource
 	private SyncResponse synResponse;
-
 	public String host;
 	public Integer port;
 	private Socket socket = null;
@@ -42,9 +41,9 @@ public class TCPClient extends Thread implements InitializingBean {
 	 */
 	public void initServer() {
 		try {
-			log.info("=============================");
+			log.info("===============");
 			log.info("初始化客户端......");
-			log.info("=============================");
+			log.info("===============");
 			setHost(Configure.getString("host"));
 			setPort(Integer.parseInt(Configure.getString("port")));
 			setUsername(Configure.getString("username"));
@@ -64,9 +63,13 @@ public class TCPClient extends Thread implements InitializingBean {
 			}
 			return true;
 		} catch (Exception e) {
-			log.info("=============发送数据失败： " + getHost() + ": " + getPort() + " ==============");
+			log.info("======发送数据失败： " + getHost() + ": " + getPort() + " =====");
 			log.error(e.getMessage());
-			log.info("=================================");
+			log.info("===============");
+//			log.info("======重新初始化socket通道======");
+//			initServer();
+//			isRunning = !sendMessage(getSocket(), TCPUtils.getLoginMsg(username, password));
+//			log.info("======成功初始化socket通道======");
 			return false;
 		}
 	}
@@ -85,22 +88,22 @@ public class TCPClient extends Thread implements InitializingBean {
 						resultValue = new String(data, 0, rLen, "GBK");
 						String msg1 = resultValue.substring(2);
 						String msg2 = msg1.substring(0, msg1.indexOf(">"));
-						log.info("===============响应消息类型==============");
 						// 消息id
 						String msgId = msg2.substring(0, 4);
+						log.info("======响应消息类型=======");
 						log.info(msgId);
-						log.info("===============响应消息类型==============");
+						log.info("======响应消息类型=======");
 						if (msgId.equals(Integer.toString(GPSCommand.GPS_TAXI_RESP))) {
 							synResponse.handlerResponse(resultValue);
 						} else if (msgId.equals(Integer.toString(GPSCommand.GPS_HEARTBEAT))) {
-							log.info("================ 心跳包链路响应 ==============");
+							log.info("====== 心跳包链路响应 =====");
 							log.info(resultValue);
-							log.info("================ 心跳包链路响应 ==============");
+							log.info("====== 心跳包链路响应 =====");
 						} else if (msgId.equals(Integer.toString(GPSCommand.GPS_CALL_RESP))) {
-							log.info("================ 心跳包链路响应 ==============");
+							log.info("======= 召车响应 ======");
 							log.info(resultValue);
-							log.info("================ 心跳包链路响应 ==============");
-						}else {
+							log.info("======= 召车响应 ======");
+						} else {
 							synchronized (client) {
 								client.setResult(resultValue);
 							}
@@ -111,19 +114,21 @@ public class TCPClient extends Thread implements InitializingBean {
 				while (isRunning) {
 					try {
 						log.error("连接已断开");
-						log.info("=============重新连接 ==============");
+						//将原socket值为空，直到连接成功后再发送数据。
+						setSocket(null);
+						log.info("======重新连接 ======");
 						initServer();
 						isRunning = !sendMessage(getSocket(), TCPUtils.getLoginMsg(username, password));
-						log.info("============重新连接成功============");
+						log.info("======重新连接成功=====");
 					} catch (Exception e) {
 						e.printStackTrace();
-						log.info("===========建立连接失败=============");
+						log.info("=====建立连接失败====");
 						isRunning = true;
 					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-				System.err.println("socket exception.");
+				log.error("socket exception.");
 				return;
 			}
 		}
@@ -149,7 +154,7 @@ public class TCPClient extends Thread implements InitializingBean {
 		this.start();
 		sendMessage(getSocket(), TCPUtils.getLoginMsg(username, password));
 		String returnData = client.getResult();
-		log.info("==============登陆成功,返回信息：[" + returnData + "]==================");
+		log.info("======登陆成功,返回信息：[" + returnData + "]========");
 	}
 
 	public String getHost() {

@@ -105,7 +105,7 @@ public class TaxiController {
 				map.put("data", null);
 			}
 		} catch (Exception e) {
-			log.error("===============系统异常>>" + e.getMessage());
+			log.error("系统异常>>" + e.getMessage());
 			map.put("state", "1");
 			map.put("message", "ER");
 			map.put("count", 0);
@@ -121,7 +121,7 @@ public class TaxiController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("===================系统异常>>" + e.getMessage());
+			log.error("系统异常>>" + e.getMessage());
 		}
 	}
 
@@ -218,7 +218,7 @@ public class TaxiController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("========================系统异常>>" + e.getMessage());
+			log.error("系统异常>>" + e.getMessage());
 		}
 	}
 

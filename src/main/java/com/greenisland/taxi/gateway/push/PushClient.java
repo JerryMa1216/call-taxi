@@ -34,7 +34,7 @@ public class PushClient {
 		DefaultPushClient client = new DefaultPushClient(new PushCredentials(API_KEY, SECRIT_KEY));
 		PushMessageRequest request = new PushMessageRequest();
 		StringBuilder message = new StringBuilder("{\"aps\":{\"alert\":");
-		message.append("\"159打车：您的订单已被抢到\",\"sound\":\"\",\"badge\":\"\"},");
+		message.append("\"余杭的士：您的订单已被抢到\",\"sound\":\"\",\"badge\":\"\"},");
 		message.append("\"applyId\":\"" + applyId + "\",");
 		message.append("\"cType\":\"" + callType + "\"}");
 		request.setUserId(userId);
