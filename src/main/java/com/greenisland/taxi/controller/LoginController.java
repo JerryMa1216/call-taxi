@@ -240,30 +240,31 @@ public class LoginController {
 		// 访问令牌
 		String token = UUID.randomUUID().toString().replaceAll("-", "");
 		try {
-			// 客户端生成随即字符串，用来做对称加密使用
-			UserInfo baseUser = this.userInfoService.getUserInfoByPhoneNumber(phoneNumber);
-			if (baseUser != null && baseUser.getActivateState().equals(UserState.ACTIVATED)) {
-				if (phoneNumber.equals(Configure.getString("testAccount"))) {
-					// 初始化私钥
-					RSA.loadPrivateKey(RSA.DEFAULT_PRIVATE_KEY);
-					// 私钥
-					RSAPrivateKey privateKey = RSA.getPrivateKey();
-					byte[] bSign = decoder.decodeBuffer(sign);
-					// 根据私钥进行解密
-					byte[] decodeSign = RSA.decrypt(privateKey, bSign);
-					String outputData = new String(decodeSign);
-					key = outputData.split(",")[0];
-					// 登陆成功
-					baseUser.setKey(key);
-					baseUser.setToken(token);
-					baseUser.setActivateState(UserState.NON_ACTIVATED);
-					this.userInfoService.updateUserInfo(baseUser);
-					String returnData = baseUser.getId() + "," + token;
-					map.put("state", "0");
-					map.put("message", "登陆成功！");
-					map.put("date", new Date());
-					map.put("data", new ReturnObject(DES.encryptDES(returnData, key)));
-				} else {
+			if (phoneNumber.equals(Configure.getString("testAccount"))) {
+				UserInfo baseUser = this.userInfoService.getUserInfoByPhoneNumber(phoneNumber);
+				// 初始化私钥
+				RSA.loadPrivateKey(RSA.DEFAULT_PRIVATE_KEY);
+				// 私钥
+				RSAPrivateKey privateKey = RSA.getPrivateKey();
+				byte[] bSign = decoder.decodeBuffer(sign);
+				// 根据私钥进行解密
+				byte[] decodeSign = RSA.decrypt(privateKey, bSign);
+				String outputData = new String(decodeSign);
+				key = outputData.split(",")[0];
+				// 登陆成功
+				baseUser.setKey(key);
+				baseUser.setToken(token);
+				baseUser.setActivateState(UserState.NON_ACTIVATED);
+				this.userInfoService.updateUserInfo(baseUser);
+				String returnData = baseUser.getId() + "," + token;
+				map.put("state", "0");
+				map.put("message", "登陆成功！");
+				map.put("date", new Date());
+				map.put("data", new ReturnObject(DES.encryptDES(returnData, key)));
+			} else {
+				// 客户端生成随即字符串，用来做对称加密使用
+				UserInfo baseUser = this.userInfoService.getUserInfoByPhoneNumber(phoneNumber);
+				if (baseUser != null && baseUser.getActivateState().equals(UserState.ACTIVATED)) {
 					if (baseUser.getCaptcha().equals(captcha)) {
 						// 初始化私钥
 						RSA.loadPrivateKey(RSA.DEFAULT_PRIVATE_KEY);
@@ -290,12 +291,12 @@ public class LoginController {
 						map.put("date", new Date());
 						map.put("data", new ReturnObject(null));
 					}
+				} else {
+					map.put("state", "2");
+					map.put("message", "您的账号已在其他设备上登陆！");
+					map.put("date", new Date());
+					map.put("data", new ReturnObject(null));
 				}
-			} else {
-				map.put("state", "2");
-				map.put("message", "您的账号已在其他设备上登陆！");
-				map.put("date", new Date());
-				map.put("data", new ReturnObject(null));
 			}
 			response.reset();
 			response.setCharacterEncoding("UTF-8");

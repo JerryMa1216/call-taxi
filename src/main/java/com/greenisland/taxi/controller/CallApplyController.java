@@ -74,9 +74,12 @@ public class CallApplyController {
 	 * @param callType
 	 * @param callScope
 	 * @param callDistance
-	 * @param mechineType 设备类型 1，Andriod 2，ios
-	 * @param sLoca 起点位置
-	 * @param eLoca 重点位置
+	 * @param mechineType
+	 *            设备类型 1，Andriod 2，ios
+	 * @param sLoca
+	 *            起点位置
+	 * @param eLoca
+	 *            重点位置
 	 * @param longitude
 	 * @param latitude
 	 * @throws Exception
@@ -366,7 +369,8 @@ public class CallApplyController {
 	 * 评价司机
 	 * 
 	 * @param applyId
-	 * @param level 小于5 已上车 ，大于5 未上车
+	 * @param level
+	 *            小于5 已上车 ，大于5 未上车
 	 * @param content
 	 * @param response
 	 * @param canceContent
