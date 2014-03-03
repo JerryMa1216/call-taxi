@@ -9,7 +9,7 @@
 	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
 	http://www.bstek.com/bdf/schema http://www.bstek.com/dorado/schema/bdf2.0.xsd
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
-
+	<!-- socket心跳包job -->
 	<bean id="msgActivity" class="org.springframework.scheduling.quartz.JobDetailBean">
 		<property name="jobClass">
 			<value>com.greenisland.taxi.gateway.job.ActivityConnect</value>
@@ -28,10 +28,10 @@
 			<ref bean="msgActivity" />
 		</property>
 		<property name="repeatInterval">
-			<value>15000</value>
+			<value>10000</value>
 		</property>
 	</bean>
-
+	<!-- cmpp短信接口心跳包job -->
 	<bean id="msgActivityTimer" class="org.springframework.scheduling.quartz.JobDetailBean">
 		<property name="jobClass">
 			<value>com.greenisland.taxi.gateway.cmpp.util.MsgActivityTimer

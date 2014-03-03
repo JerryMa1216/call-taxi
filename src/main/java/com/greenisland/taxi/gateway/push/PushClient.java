@@ -22,6 +22,7 @@ public class PushClient {
 
 	/**
 	 * 推送制定用户信息，ios
+	 * 
 	 * @param applyId
 	 *            TODO
 	 * @param taxiPlateNumber
@@ -30,7 +31,7 @@ public class PushClient {
 	 * 
 	 * @return
 	 */
-	public boolean pushSingleUserIOS(String userId, String channelId, String applyId,String callType) {
+	public boolean pushSingleUserIOS(String userId, String channelId, String applyId, String callType) {
 		DefaultPushClient client = new DefaultPushClient(new PushCredentials(API_KEY, SECRIT_KEY));
 		PushMessageRequest request = new PushMessageRequest();
 		StringBuilder message = new StringBuilder("{\"aps\":{\"alert\":");
@@ -44,7 +45,7 @@ public class PushClient {
 		request.setPushType(PushType.single_user);
 		request.setDeviceTypes(Arrays.asList(DeviceType.iso));
 		request.setMessageKeys(UUID.randomUUID().toString());
-		request.setDeployStatus(Long.valueOf(1));// test need
+		request.setDeployStatus(Long.valueOf(Configure.getString("pushFlag")));
 		PushResponse<Integer> response = client.pushMessage(request);
 		response.getResult();
 		return true;
@@ -93,7 +94,7 @@ public class PushClient {
 		request.setPushType(PushType.single_user);
 		request.setDeviceTypes(Arrays.asList(DeviceType.android));
 		request.setMessageKeys(UUID.randomUUID().toString());
-		request.setDeployStatus(Long.valueOf(1));// test need
+		request.setDeployStatus(Long.valueOf(Configure.getString("pushFlag")));
 		PushResponse<Integer> response = client.pushMessage(request);
 		response.getResult();
 		return true;

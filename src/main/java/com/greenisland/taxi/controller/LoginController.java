@@ -243,7 +243,7 @@ public class LoginController {
 			// 客户端生成随即字符串，用来做对称加密使用
 			UserInfo baseUser = this.userInfoService.getUserInfoByPhoneNumber(phoneNumber);
 			if (baseUser != null && baseUser.getActivateState().equals(UserState.ACTIVATED)) {
-				if (baseUser.getCaptcha().equals(captcha)) {
+				if (phoneNumber.equals(Configure.getString("testAccount"))) {
 					// 初始化私钥
 					RSA.loadPrivateKey(RSA.DEFAULT_PRIVATE_KEY);
 					// 私钥
@@ -264,10 +264,32 @@ public class LoginController {
 					map.put("date", new Date());
 					map.put("data", new ReturnObject(DES.encryptDES(returnData, key)));
 				} else {
-					map.put("state", "1");
-					map.put("message", "登陆失败,验证码不正确！");
-					map.put("date", new Date());
-					map.put("data", new ReturnObject(null));
+					if (baseUser.getCaptcha().equals(captcha)) {
+						// 初始化私钥
+						RSA.loadPrivateKey(RSA.DEFAULT_PRIVATE_KEY);
+						// 私钥
+						RSAPrivateKey privateKey = RSA.getPrivateKey();
+						byte[] bSign = decoder.decodeBuffer(sign);
+						// 根据私钥进行解密
+						byte[] decodeSign = RSA.decrypt(privateKey, bSign);
+						String outputData = new String(decodeSign);
+						key = outputData.split(",")[0];
+						// 登陆成功
+						baseUser.setKey(key);
+						baseUser.setToken(token);
+						baseUser.setActivateState(UserState.NON_ACTIVATED);
+						this.userInfoService.updateUserInfo(baseUser);
+						String returnData = baseUser.getId() + "," + token;
+						map.put("state", "0");
+						map.put("message", "登陆成功！");
+						map.put("date", new Date());
+						map.put("data", new ReturnObject(DES.encryptDES(returnData, key)));
+					} else {
+						map.put("state", "1");
+						map.put("message", "登陆失败,验证码不正确！");
+						map.put("date", new Date());
+						map.put("data", new ReturnObject(null));
+					}
 				}
 			} else {
 				map.put("state", "2");
@@ -380,6 +402,6 @@ public class LoginController {
 	@RequestMapping(value = "/get_store", method = RequestMethod.GET)
 	public ModelAndView getStore() {
 		String storeUrl = Configure.getString("storeUrl");
-		return new ModelAndView("redirect:"+storeUrl);
+		return new ModelAndView("redirect:" + storeUrl);
 	}
 }

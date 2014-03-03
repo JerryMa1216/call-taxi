@@ -24,7 +24,7 @@ import com.greenisland.taxi.manager.CompanyInfoService;
 import com.greenisland.taxi.manager.SystemLogService;
 import com.greenisland.taxi.manager.TaxiInfoService;
 
-@Component
+@Component("syncResponse")
 public class SyncResponse {
 	@Resource
 	private CallApplyInfoService callApplyInfoService;
