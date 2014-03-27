@@ -10,27 +10,13 @@
 	http://www.bstek.com/bdf/schema http://www.bstek.com/dorado/schema/bdf2.0.xsd
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 	<!-- socket心跳包job -->
-	<bean id="msgActivity" class="org.springframework.scheduling.quartz.JobDetailBean">
-		<property name="jobClass">
-			<value>com.greenisland.taxi.gateway.job.ActivityConnect</value>
-		</property>
-		<property name="applicationContextJobDataKey" value="applicationContext" />
-		<property name="jobDataAsMap">
-			<map>
-				<entry key="syncClient">
-					<ref bean="syncClient" />
-				</entry>
-			</map>
-		</property>
-	</bean>
-	<bean id="msgClock" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
-		<property name="jobDetail">
-			<ref bean="msgActivity" />
-		</property>
-		<property name="repeatInterval">
-			<value>10000</value>
-		</property>
-	</bean>
+	<!-- <bean id="msgGPSActivity" class="org.springframework.scheduling.quartz.JobDetailBean"> 
+		<property name="jobClass"> <value>com.greenisland.taxi.gateway.job.ActivityGPSConnect</value> 
+		</property> <property name="applicationContextJobDataKey" value="applicationContext" 
+		/> <property name="jobDataAsMap"> <map> <entry key="gpsContainer"> <ref bean="gpsContainer" 
+		/> </entry> </map> </property> </bean> <bean id="msgGPSClock" class="org.springframework.scheduling.quartz.SimpleTriggerBean"> 
+		<property name="jobDetail"> <ref bean="msgGPSActivity" /> </property> <property 
+		name="repeatInterval"> <value>10000</value> </property> </bean> -->
 	<!-- cmpp短信接口心跳包job -->
 	<bean id="msgActivityTimer" class="org.springframework.scheduling.quartz.JobDetailBean">
 		<property name="jobClass">
@@ -58,7 +44,7 @@
 	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
 		<property name="triggers">
 			<list>
-				<ref bean="msgClock" />
+				<!-- <ref bean="msgGPSClock" /> -->
 				<ref bean="msgActivityTimerClock" />
 			</list>
 		</property>

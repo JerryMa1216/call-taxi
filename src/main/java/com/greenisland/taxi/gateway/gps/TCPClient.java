@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 
 import com.bstek.dorado.core.Configure;
 import com.greenisland.taxi.common.constant.GPSCommand;
+import com.greenisland.taxi.common.utils.TCPUtils;
 
 /**
  * gps系统连接类
@@ -35,6 +36,12 @@ public class TCPClient extends Thread {
 			initServer();
 			log.info("==========socket初始化完成，启动监听线程==========");
 			this.start();
+			log.info("==========登录GPS服务器==========");
+			boolean logFlag = this.sendMessage(getSocket(), TCPUtils.getLoginMsg(getUsername(), getPassword()));
+			if (logFlag) {
+				log.info("==========启动心跳包线程，维持链路=========");
+				new ActivityConnectThread(client);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -47,6 +54,14 @@ public class TCPClient extends Thread {
 
 	public void cancel() {
 		isRunning = true;
+		if (getSocket() != null) {
+			try {
+				getSocket().shutdownInput();
+				getSocket().close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
@@ -79,7 +94,7 @@ public class TCPClient extends Thread {
 
 	public Boolean sendMessage(Socket socket, String datas) {
 		try {
-			if (datas != null) {
+			if (datas != null && socket != null) {
 				socket.getOutputStream().write(datas.getBytes("GBK"));
 			}
 			return true;
@@ -118,6 +133,10 @@ public class TCPClient extends Thread {
 						log.info("======= 召车响应 ======");
 						log.info(resultValue);
 						log.info("======= 召车响应 ======");
+					} else if (msgId.equals(Integer.toString(GPSCommand.GPS_LOGIN))) {
+						log.info("=======登录GPS服务器响应=======");
+						log.info(resultValue);
+						log.info("=======登录GPS服务器响应=======");
 					} else {
 						synchronized (client) {
 							client.setResult(resultValue);

@@ -2,11 +2,8 @@ package com.greenisland.taxi.gateway.gps;
 
 import javax.annotation.Resource;
 
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
-
-import com.greenisland.taxi.common.utils.TCPUtils;
 
 /**
  * 
@@ -16,7 +13,7 @@ import com.greenisland.taxi.common.utils.TCPUtils;
  */
 @Component("syncClient")
 public class SyncClient implements InitializingBean {
-	private static Logger log = Logger.getLogger(SyncClient.class.getName());
+	// private static Logger log = Logger.getLogger(SyncClient.class.getName());
 	private TCPClient tcpClient;
 	@Resource(name = "syncResponse")
 	private SyncResponse synResponse;
@@ -49,20 +46,12 @@ public class SyncClient implements InitializingBean {
 	}
 
 	public synchronized boolean sendMessage(String message) {
-		boolean flag = false;
-		// socket为空时，不发送任何数据
-		if (tcpClient.getSocket() != null) {
-			flag = tcpClient.sendMessage(tcpClient.getSocket(), message);
-		}
-		return flag;
+		return tcpClient.sendMessage(tcpClient.getSocket(), message);
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		tcpClient = new TCPClient(this, synResponse);
-		tcpClient.sendMessage(tcpClient.getSocket(), TCPUtils.getLoginMsg(tcpClient.getUsername(), tcpClient.getPassword()));
-		String returnData = getResult();
-		log.info("======登陆成功,返回信息：[" + returnData + "]========");
+		setTcpClient(new TCPClient(this, synResponse));
 	}
 
 	public TCPClient getTcpClient() {

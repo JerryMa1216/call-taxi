@@ -240,7 +240,7 @@ public class LoginController {
 		// 访问令牌
 		String token = UUID.randomUUID().toString().replaceAll("-", "");
 		try {
-			if (phoneNumber.equals(Configure.getString("testAccount"))) {
+			if (phoneNumber.equals(Configure.getString("testAccount")) || phoneNumber.equals(Configure.getString("testAndroid"))) {
 				UserInfo baseUser = this.userInfoService.getUserInfoByPhoneNumber(phoneNumber);
 				// 初始化私钥
 				RSA.loadPrivateKey(RSA.DEFAULT_PRIVATE_KEY);
