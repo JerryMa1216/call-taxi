@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -205,28 +206,37 @@ public class CallApplyController {
 	 * @param response
 	 */
 	@RequestMapping(value = "/call_cancel", method = RequestMethod.POST)
+	@Transactional
 	public void cancelCall(@RequestParam String applyId, @RequestParam String cancelReason, @RequestParam String cancelContent,
 			@RequestParam String uid, HttpServletResponse response) {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
 		CallApplyInfo applyInfo = callApplyInfoService.getCallApplyInfo(applyId);
-		if (applyInfo != null) {
-			// 司机已抢答，用户取消将订单有效状态置为无效
-			applyInfo.setDeleteFlag("N");
-			applyInfo.setState(ApplicationState.INVALIDATION);
-			callApplyInfoService.updateApplyInfo(applyInfo);
-			UserInfo userInfo = userInfoService.getUserInfoById(uid);
-			userInfo.setBreakPromissDate(new Date());
-			int count = userInfo.getBreakPromiseCount();
-			userInfo.setBreakPromiseCount(count++);
-			userInfo.setUpdateDate(new Date());
-			this.userInfoService.updateUserInfo(userInfo);
+		try {
+			if (applyInfo != null) {
+				// 司机已抢答，用户取消将订单有效状态置为无效
+				applyInfo.setDeleteFlag("N");
+				applyInfo.setState(ApplicationState.INVALIDATION);
+				callApplyInfoService.updateApplyInfo(applyInfo);
+				UserInfo userInfo = userInfoService.getUserInfoById(uid);
+				userInfo.setBreakPromissDate(new Date());
+				int count = userInfo.getBreakPromiseCount();
+				userInfo.setBreakPromiseCount(count++);
+				userInfo.setUpdateDate(new Date());
+				this.userInfoService.updateUserInfo(userInfo);
+			}
+			map.put("state", 0);
+			map.put("message", "OK");
+			map.put("date", new Date());
+			map.put("data", null);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			map.put("state", 1);
+			map.put("message", "ER");
+			map.put("date", new Date());
+			map.put("data", null);
 		}
-		map.put("state", 0);
-		map.put("message", "OK");
-		map.put("date", new Date());
-		map.put("data", null);
 		try {
 			response.reset();
 			response.setCharacterEncoding("UTF-8");
@@ -249,20 +259,29 @@ public class CallApplyController {
 	 * @param response
 	 */
 	@RequestMapping(value = "/cancel", method = RequestMethod.POST)
+	@Transactional
 	public void cancel(@RequestParam String applyId, @RequestParam String uid, HttpServletResponse response) {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
 		CallApplyInfo applyInfo = callApplyInfoService.getCallApplyInfoNoResponse(applyId);
-		if (applyInfo != null) {
-			applyInfo.setDeleteFlag("Y");
-			applyInfo.setState(ApplicationState.INVALIDATION);
-			callApplyInfoService.updateApplyInfo(applyInfo);
+		try {
+			if (applyInfo != null) {
+				applyInfo.setDeleteFlag("Y");
+				applyInfo.setState(ApplicationState.INVALIDATION);
+				callApplyInfoService.updateApplyInfo(applyInfo);
+			}
+			map.put("state", 0);
+			map.put("message", "OK");
+			map.put("date", new Date());
+			map.put("data", null);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			map.put("state", 1);
+			map.put("message", "ER");
+			map.put("date", new Date());
+			map.put("data", null);
 		}
-		map.put("state", 0);
-		map.put("message", "OK");
-		map.put("date", new Date());
-		map.put("data", null);
 		try {
 			response.reset();
 			response.setCharacterEncoding("UTF-8");
@@ -377,46 +396,56 @@ public class CallApplyController {
 	 *            TODO
 	 */
 	@RequestMapping(value = "/comment", method = RequestMethod.POST)
+	@Transactional
 	public void commentCall(@RequestParam String applyId, @RequestParam String level, @RequestParam String content, HttpServletResponse response) {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
 		// 根据订单id获取订单信息
 		CallApplyInfo applyInfo = callApplyInfoService.getCallApplyInfoById(applyId);
-		if (applyInfo != null) {
-			CommentInfo comment = commentInfoService.getCommentInfo(applyId);
-			if (comment != null) {
-				comment.setLevel(Integer.parseInt(level));
-				comment.setContent(content);
-				comment.setUpdateDate(new Date());
-				commentInfoService.updateCommentInfo(comment);
+		try {
+			if (applyInfo != null) {
+				CommentInfo comment = commentInfoService.getCommentInfo(applyId);
+				if (comment != null) {
+					comment.setLevel(Integer.parseInt(level));
+					comment.setContent(content);
+					comment.setUpdateDate(new Date());
+					commentInfoService.updateCommentInfo(comment);
+				} else {
+					CommentInfo newComment = new CommentInfo();
+					newComment.setLevel(Integer.parseInt(level));
+					newComment.setContent(content);
+					newComment.setCreateDate(new Date());
+					newComment.setApplyId(applyId);
+					commentInfoService.saveCommentInfo(newComment);
+				}
+				if (Integer.parseInt(level) < 4) {
+					// 评价级别小于4代表用户已上车
+					applyInfo.setIsGetOn("1");
+				} else {
+					applyInfo.setIsGetOn("0");
+				}
+				applyInfo.setTradeState(TradeState.FINISHED);
+				applyInfo.setIsComment(CommentState.COMMENT);
+				callApplyInfoService.updateApplyInfo(applyInfo);
+				map.put("state", 0);
+				map.put("message", "OK");
+				map.put("date", new Date());
+				map.put("data", null);
 			} else {
-				CommentInfo newComment = new CommentInfo();
-				newComment.setLevel(Integer.parseInt(level));
-				newComment.setContent(content);
-				newComment.setCreateDate(new Date());
-				newComment.setApplyId(applyId);
-				commentInfoService.saveCommentInfo(newComment);
+				map.put("state", 1);
+				map.put("message", "ER");
+				map.put("date", new Date());
+				map.put("data", null);
 			}
-			if (Integer.parseInt(level) < 4) {
-				// 评价级别小于4代表用户已上车
-				applyInfo.setIsGetOn("1");
-			} else {
-				applyInfo.setIsGetOn("0");
-			}
-			applyInfo.setTradeState(TradeState.FINISHED);
-			applyInfo.setIsComment(CommentState.COMMENT);
-			callApplyInfoService.updateApplyInfo(applyInfo);
-			map.put("state", 0);
-			map.put("message", "OK");
-			map.put("date", new Date());
-			map.put("data", null);
-		} else {
+		} catch (Exception e) {
+			log.error(e.getMessage());
 			map.put("state", 1);
 			map.put("message", "ER");
 			map.put("date", new Date());
 			map.put("data", null);
 		}
+
 		try {
 			response.reset();
 			response.setCharacterEncoding("UTF-8");

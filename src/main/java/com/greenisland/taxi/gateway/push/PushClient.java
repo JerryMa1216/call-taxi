@@ -31,7 +31,7 @@ public class PushClient {
 	 * 
 	 * @return
 	 */
-	public boolean pushSingleUserIOS(String userId, String channelId, String applyId, String callType) {
+	public boolean pushSingleUserIOS(String userId, String channelId, String applyId, String callType) throws Exception {
 		DefaultPushClient client = new DefaultPushClient(new PushCredentials(API_KEY, SECRIT_KEY));
 		PushMessageRequest request = new PushMessageRequest();
 		StringBuilder message = new StringBuilder("{\"aps\":{\"alert\":");
@@ -63,15 +63,12 @@ public class PushClient {
 	 * @param userId
 	 * @param channelId
 	 * @param applyId
-	 *            TODO
 	 * @param callType
-	 *            TODO
 	 * @param taxiInfo
-	 *            TODO
 	 * @return
 	 */
 	public boolean pushSinglerUserAndroid(String company, int niceCount, int orderCount, String userId, String channelId, String applyId,
-			String callType, TaxiInfo taxiInfo) {
+			String callType, TaxiInfo taxiInfo) throws Exception {
 		DefaultPushClient client = new DefaultPushClient(new PushCredentials(API_KEY, SECRIT_KEY));
 		PushMessageRequest request = new PushMessageRequest();
 		request.setMessageType(MessageType.message);

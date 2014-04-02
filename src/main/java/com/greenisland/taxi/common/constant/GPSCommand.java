@@ -32,4 +32,21 @@ public interface GPSCommand {
 	 * 心跳包应答
 	 */
 	int GPS_HEARTBEAT = 1099;
+
+	/**
+	 * 登录请求
+	 */
+	String GPS_LOGIN_REQUEST = "0001";
+	/**
+	 * 周边车辆查询
+	 */
+	String GPS_AROUND_TAXIS_REQUEST = "0002";
+	/**
+	 * 乘客召车
+	 */
+	String GPS_CALL_REQUEST = "0003";
+	/**
+	 * 车辆位置跟踪
+	 */
+	String GPS_TAXI_MONITER_REQUEST = "0005";
 }

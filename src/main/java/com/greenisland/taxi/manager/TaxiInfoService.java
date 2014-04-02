@@ -41,12 +41,12 @@ public class TaxiInfoService extends BaseHibernateDao {
 	}
 
 	@Transactional
-	public void updateTaxiInfo(TaxiInfo taxiInfo) {
+	public void updateTaxiInfo(TaxiInfo taxiInfo) throws Exception {
 		this.getHibernateTemplate().update(taxiInfo);
 	}
 
 	@Transactional
-	public String saveTaxiInfo(TaxiInfo taxiInfo) {
+	public String saveTaxiInfo(TaxiInfo taxiInfo) throws Exception {
 		return (String) this.getHibernateTemplate().save(taxiInfo);
 	}
 }

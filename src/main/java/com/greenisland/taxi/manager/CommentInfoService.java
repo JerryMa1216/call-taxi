@@ -23,12 +23,12 @@ public class CommentInfoService extends BaseHibernateDao {
 	 * @return
 	 */
 	@Transactional
-	public String saveCommentInfo(CommentInfo commentInfo) {
+	public String saveCommentInfo(CommentInfo commentInfo) throws Exception {
 		return (String) this.getHibernateTemplate().save(commentInfo);
 	}
 
 	@Transactional
-	public void updateCommentInfo(CommentInfo commentInfo) {
+	public void updateCommentInfo(CommentInfo commentInfo) throws Exception {
 		this.getHibernateTemplate().update(commentInfo);
 	}
 

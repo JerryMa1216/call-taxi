@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,11 +25,11 @@ import sun.misc.BASE64Decoder;
 import com.bstek.dorado.core.Configure;
 import com.greenisland.taxi.common.constant.UserState;
 import com.greenisland.taxi.common.utils.CaptchaUtils;
+import com.greenisland.taxi.common.utils.HttpClientUtil;
 import com.greenisland.taxi.domain.EquipmentInfo;
 import com.greenisland.taxi.domain.FeedBack;
 import com.greenisland.taxi.domain.ReturnObject;
 import com.greenisland.taxi.domain.UserInfo;
-import com.greenisland.taxi.gateway.cmpp.util.MsgContainer;
 import com.greenisland.taxi.manager.EquipmentInfoService;
 import com.greenisland.taxi.manager.FeedbackService;
 import com.greenisland.taxi.manager.UserInfoService;
@@ -49,8 +50,8 @@ public class LoginController {
 	private EquipmentInfoService equipmentInfoService;
 	@Resource
 	private UserInfoService userInfoService;
-	@Resource
-	private MsgContainer msgContainer;
+	// @Resource
+	// private MsgContainer msgContainer;
 	@Resource
 	private FeedbackService feedbackService;
 
@@ -65,6 +66,7 @@ public class LoginController {
 	 * @return
 	 */
 	@RequestMapping(value = "/get_captcha", method = RequestMethod.GET)
+	@Transactional
 	public String getCaptcha(@RequestParam String phoneNumber, @RequestParam String equipmentId, HttpServletRequest request,
 			HttpServletResponse response) {
 		boolean flag = false;
@@ -88,7 +90,7 @@ public class LoginController {
 					if (capCount < Integer.parseInt(Configure.getString("count"))) {
 						try {
 							message.append("余杭的士，登陆验证码为： " + captchaCode);
-							flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
+							flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
 							if (flag) {
 								userInfo.setCaptcha(captchaCode);
 								userInfo.setActivateState(UserState.ACTIVATED);
@@ -118,7 +120,7 @@ public class LoginController {
 					// 新用户
 					try {
 						message.append("余杭的士，登陆验证码为： " + captchaCode);
-						flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
+						flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
 						if (flag) {
 							UserInfo newUser = new UserInfo();
 							newUser.setPhoneNumber(phoneNumber);
@@ -157,7 +159,9 @@ public class LoginController {
 				if (capCount < Integer.parseInt(Configure.getString("count"))) {
 					try {
 						message.append("余杭的士，登陆验证码为： " + captchaCode);
-						flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
+						// flag = this.msgContainer.sendMsg(message.toString(),
+						// phoneNumber);
+						flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
 						if (flag) {
 							userInfo.setCaptcha(captchaCode);
 							userInfo.setActivateState(UserState.ACTIVATED);
@@ -187,7 +191,7 @@ public class LoginController {
 			} else {
 				try {
 					message.append("余杭的士，登陆验证码为： " + captchaCode);
-					flag = this.msgContainer.sendMsg(message.toString(), phoneNumber);
+					flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
 					if (flag) {
 						UserInfo newUser = new UserInfo();
 						newUser.setPhoneNumber(phoneNumber);
@@ -230,6 +234,7 @@ public class LoginController {
 	}
 
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
+	@Transactional
 	public void login(@RequestParam String sign, @RequestParam String phoneNumber, @RequestParam String captcha, HttpServletResponse response) {
 		BASE64Decoder decoder = new BASE64Decoder();
 		HashMap<String, Object> map = new HashMap<String, Object>();
@@ -318,6 +323,7 @@ public class LoginController {
 	 * @param response
 	 */
 	@RequestMapping(value = "/feedback", method = RequestMethod.POST)
+	@Transactional
 	public void feedback(@RequestParam String username, @RequestParam String content, HttpServletResponse response) {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -360,6 +366,7 @@ public class LoginController {
 	 * @param response
 	 */
 	@RequestMapping(value = "/logout", method = RequestMethod.POST)
+	@Transactional
 	public void logout(@RequestParam String phoneNumber, @RequestParam String uid, HttpServletResponse response) {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		ObjectMapper objectMapper = new ObjectMapper();

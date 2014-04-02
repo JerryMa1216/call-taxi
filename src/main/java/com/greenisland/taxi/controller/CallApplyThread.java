@@ -41,8 +41,7 @@ public class CallApplyThread extends Thread {
 				}
 			}
 		} catch (Exception e) {
-			log.info("=====倒计时任务处理异常=====");
-			e.printStackTrace();
+			log.info("=====倒计时任务处理异常=====" + e.getMessage());
 		}
 	}
 }

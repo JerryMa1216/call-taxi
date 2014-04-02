@@ -26,7 +26,7 @@ import com.greenisland.taxi.gateway.cmpp.domain.MsgSubmit;
  * @E-mail jerry.ma@bstek.com
  * @version 2013-8-26下午2:43:50
  */
-@Component
+//@Component
 public class MsgContainer {
 	private static Log log = LogFactory.getLog(MsgContainer.class);
 	private Socket msgSocket;

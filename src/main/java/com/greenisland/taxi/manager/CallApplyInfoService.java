@@ -142,7 +142,7 @@ public class CallApplyInfoService extends BaseHibernateDao {
 	 * @return
 	 */
 	@Transactional
-	public String saveCallApplyInfo(CallApplyInfo applyInfo) {
+	public String saveCallApplyInfo(CallApplyInfo applyInfo) throws Exception {
 		return (String) this.getHibernateTemplate().save(applyInfo);
 	}
 
@@ -152,7 +152,7 @@ public class CallApplyInfoService extends BaseHibernateDao {
 	 * @param applyInfo
 	 */
 	@Transactional
-	public void updateApplyInfo(CallApplyInfo applyInfo) {
+	public void updateApplyInfo(CallApplyInfo applyInfo) throws Exception {
 		this.getHibernateTemplate().update(applyInfo);
 	}
 
@@ -161,7 +161,7 @@ public class CallApplyInfoService extends BaseHibernateDao {
 	 * 
 	 * @param applyInfo
 	 */
-	public void deleteApplyInfo(CallApplyInfo applyInfo) {
+	public void deleteApplyInfo(CallApplyInfo applyInfo) throws Exception {
 		this.getHibernateTemplate().delete(applyInfo);
 	}
 }
