@@ -208,8 +208,15 @@
 			<url>http://nexus.bsdn.org/content/groups/public/</url>
 		</repository>
 		<repository>
-			<id>ifelc-repository</id>
-			<url>http://172.16.80.146:9081/nexus/content/groups/public/</url>
+			<id>nexus</id>
+            <name>local private nexus</name>
+            <url>http://maven.oschina.net/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
 		</repository>
 		<repository>
 			<id>spring-milestone</id>
