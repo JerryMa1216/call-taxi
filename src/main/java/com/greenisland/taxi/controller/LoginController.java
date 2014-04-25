@@ -30,6 +30,7 @@ import com.greenisland.taxi.domain.EquipmentInfo;
 import com.greenisland.taxi.domain.FeedBack;
 import com.greenisland.taxi.domain.ReturnObject;
 import com.greenisland.taxi.domain.UserInfo;
+import com.greenisland.taxi.manager.BlackListService;
 import com.greenisland.taxi.manager.EquipmentInfoService;
 import com.greenisland.taxi.manager.FeedbackService;
 import com.greenisland.taxi.manager.UserInfoService;
@@ -50,10 +51,10 @@ public class LoginController {
 	private EquipmentInfoService equipmentInfoService;
 	@Resource
 	private UserInfoService userInfoService;
-	// @Resource
-	// private MsgContainer msgContainer;
 	@Resource
 	private FeedbackService feedbackService;
+	@Resource
+	private BlackListService blackListService;
 
 	/**
 	 * 获取短信验证码
@@ -73,31 +74,104 @@ public class LoginController {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
-		// 根据设备id获取设备数据
-		EquipmentInfo equipmentInfo = equipmentInfoService.getEquipmentById(equipmentId);
-		// 根据用户手机号获取用户数据
-		UserInfo userInfo = userInfoService.getUserInfoByPhoneNumber(phoneNumber);
-		// 短信内容
-		StringBuilder message = new StringBuilder();
-		// 生成短信验证码
-		String captchaCode = CaptchaUtils.getCaptcha();
-		// 先判断设备当天获取验证码次数是否超过，超过即不允许用户再次获取验证码。
-		if (equipmentInfo != null) {
-			if (equipmentInfo.getRequestCaptchaCount() < Integer.parseInt(Configure.getString("count"))) {
-				// 判断用户是否为新用户
+		if (!this.blackListService.isBlacklist(phoneNumber)) {
+			// 根据设备id获取设备数据
+			EquipmentInfo equipmentInfo = equipmentInfoService.getEquipmentById(equipmentId);
+			// 根据用户手机号获取用户数据
+			UserInfo userInfo = userInfoService.getUserInfoByPhoneNumber(phoneNumber);
+			// 短信内容
+			StringBuilder message = new StringBuilder();
+			// 生成短信验证码
+			String captchaCode = CaptchaUtils.getCaptcha();
+			// 先判断设备当天获取验证码次数是否超过，超过即不允许用户再次获取验证码。
+			if (equipmentInfo != null) {
+				if (equipmentInfo.getRequestCaptchaCount() < Integer.parseInt(Configure.getString("count"))) {
+					// 判断用户是否为新用户
+					if (userInfo != null) {
+						Integer capCount = userInfo.getRequestCapCount();
+						if (capCount < Integer.parseInt(Configure.getString("count"))) {
+							try {
+								message.append("余杭的士，登陆验证码为： " + captchaCode);
+								flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
+								if (flag) {
+									userInfo.setCaptcha(captchaCode);
+									userInfo.setActivateState(UserState.ACTIVATED);
+									userInfo.setRequestCapCount(capCount + 1);
+									this.userInfoService.updateUserInfo(userInfo);
+									equipmentInfo.setRequestCaptchaCount(equipmentInfo.getRequestCaptchaCount() + 1);
+									this.equipmentInfoService.update(equipmentInfo);
+									map.put("state", "0");
+									map.put("message", "成功");
+									map.put("date", new Date());
+									map.put("data", null);
+								}
+							} catch (Exception e) {
+								log.error("系统异常>>" + e.getMessage());
+								map.put("state", "1");
+								map.put("message", "异常失败");
+								map.put("date", new Date());
+								map.put("data", null);
+							}
+						} else {
+							map.put("state", "2");
+							map.put("message", "手机号获取验证码次数过多，请明天再试。");
+							map.put("date", new Date());
+							map.put("data", null);
+						}
+					} else {
+						// 新用户
+						try {
+							message.append("余杭的士，登陆验证码为： " + captchaCode);
+							flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
+							if (flag) {
+								UserInfo newUser = new UserInfo();
+								newUser.setPhoneNumber(phoneNumber);
+								newUser.setCaptcha(captchaCode);
+								newUser.setRequestCapCount(1);
+								newUser.setCreateDate(new Date());
+								newUser.setUserName(phoneNumber);
+								newUser.setActivateState(UserState.ACTIVATED);
+								this.userInfoService.saveUserInfo(newUser);
+								equipmentInfo.setRequestCaptchaCount(equipmentInfo.getRequestCaptchaCount() + 1);
+								this.equipmentInfoService.update(equipmentInfo);
+								map.put("state", "0");
+								map.put("message", "成功");
+								map.put("date", new Date());
+								map.put("data", null);
+							}
+						} catch (Exception e) {
+							log.error("系统异常>>" + e.getMessage());
+							map.put("state", "1");
+							map.put("message", "异常失败");
+							map.put("date", new Date());
+							map.put("data", null);
+						}
+					}
+				} else {
+					map.put("state", "2");
+					map.put("message", "设备获取验证码次数过多，请明天再试。");
+					map.put("date", new Date());
+					map.put("data", null);
+				}
+			} else {
+				// 新设备
+				EquipmentInfo newEquipInfo = new EquipmentInfo();
 				if (userInfo != null) {
 					Integer capCount = userInfo.getRequestCapCount();
 					if (capCount < Integer.parseInt(Configure.getString("count"))) {
 						try {
 							message.append("余杭的士，登陆验证码为： " + captchaCode);
+							// flag = this.msgContainer.sendMsg(message.toString(),
+							// phoneNumber);
 							flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
 							if (flag) {
 								userInfo.setCaptcha(captchaCode);
 								userInfo.setActivateState(UserState.ACTIVATED);
 								userInfo.setRequestCapCount(capCount + 1);
 								this.userInfoService.updateUserInfo(userInfo);
-								equipmentInfo.setRequestCaptchaCount(equipmentInfo.getRequestCaptchaCount() + 1);
-								this.equipmentInfoService.update(equipmentInfo);
+								newEquipInfo.setEquipmentId(equipmentId);
+								newEquipInfo.setRequestCaptchaCount(1);
+								this.equipmentInfoService.save(newEquipInfo);
 								map.put("state", "0");
 								map.put("message", "成功");
 								map.put("date", new Date());
@@ -117,7 +191,6 @@ public class LoginController {
 						map.put("data", null);
 					}
 				} else {
-					// 新用户
 					try {
 						message.append("余杭的士，登陆验证码为： " + captchaCode);
 						flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
@@ -130,43 +203,6 @@ public class LoginController {
 							newUser.setUserName(phoneNumber);
 							newUser.setActivateState(UserState.ACTIVATED);
 							this.userInfoService.saveUserInfo(newUser);
-							equipmentInfo.setRequestCaptchaCount(equipmentInfo.getRequestCaptchaCount() + 1);
-							this.equipmentInfoService.update(equipmentInfo);
-							map.put("state", "0");
-							map.put("message", "成功");
-							map.put("date", new Date());
-							map.put("data", null);
-						}
-					} catch (Exception e) {
-						log.error("系统异常>>" + e.getMessage());
-						map.put("state", "1");
-						map.put("message", "异常失败");
-						map.put("date", new Date());
-						map.put("data", null);
-					}
-				}
-			} else {
-				map.put("state", "2");
-				map.put("message", "设备获取验证码次数过多，请明天再试。");
-				map.put("date", new Date());
-				map.put("data", null);
-			}
-		} else {
-			// 新设备
-			EquipmentInfo newEquipInfo = new EquipmentInfo();
-			if (userInfo != null) {
-				Integer capCount = userInfo.getRequestCapCount();
-				if (capCount < Integer.parseInt(Configure.getString("count"))) {
-					try {
-						message.append("余杭的士，登陆验证码为： " + captchaCode);
-						// flag = this.msgContainer.sendMsg(message.toString(),
-						// phoneNumber);
-						flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
-						if (flag) {
-							userInfo.setCaptcha(captchaCode);
-							userInfo.setActivateState(UserState.ACTIVATED);
-							userInfo.setRequestCapCount(capCount + 1);
-							this.userInfoService.updateUserInfo(userInfo);
 							newEquipInfo.setEquipmentId(equipmentId);
 							newEquipInfo.setRequestCaptchaCount(1);
 							this.equipmentInfoService.save(newEquipInfo);
@@ -182,44 +218,15 @@ public class LoginController {
 						map.put("date", new Date());
 						map.put("data", null);
 					}
-				} else {
-					map.put("state", "2");
-					map.put("message", "手机号获取验证码次数过多，请明天再试。");
-					map.put("date", new Date());
-					map.put("data", null);
-				}
-			} else {
-				try {
-					message.append("余杭的士，登陆验证码为： " + captchaCode);
-					flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
-					if (flag) {
-						UserInfo newUser = new UserInfo();
-						newUser.setPhoneNumber(phoneNumber);
-						newUser.setCaptcha(captchaCode);
-						newUser.setRequestCapCount(1);
-						newUser.setCreateDate(new Date());
-						newUser.setUserName(phoneNumber);
-						newUser.setActivateState(UserState.ACTIVATED);
-						this.userInfoService.saveUserInfo(newUser);
-						newEquipInfo.setEquipmentId(equipmentId);
-						newEquipInfo.setRequestCaptchaCount(1);
-						this.equipmentInfoService.save(newEquipInfo);
-						map.put("state", "0");
-						map.put("message", "成功");
-						map.put("date", new Date());
-						map.put("data", null);
-					}
-				} catch (Exception e) {
-					log.error("系统异常>>" + e.getMessage());
-					map.put("state", "1");
-					map.put("message", "异常失败");
-					map.put("date", new Date());
-					map.put("data", null);
 				}
 			}
+		}else{
+			map.put("state", "1");
+			map.put("message", "异常失败");
+			map.put("date", new Date());
+			map.put("data", null);
 		}
 		try {
-			map.put("c", captchaCode);
 			response.reset();
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/json");
@@ -245,64 +252,65 @@ public class LoginController {
 		// 访问令牌
 		String token = UUID.randomUUID().toString().replaceAll("-", "");
 		try {
-			if (phoneNumber.equals(Configure.getString("testAccount")) || phoneNumber.equals(Configure.getString("testAndroid"))) {
-				UserInfo baseUser = this.userInfoService.getUserInfoByPhoneNumber(phoneNumber);
-				// 初始化私钥
-				RSA.loadPrivateKey(RSA.DEFAULT_PRIVATE_KEY);
-				// 私钥
-				RSAPrivateKey privateKey = RSA.getPrivateKey();
-				byte[] bSign = decoder.decodeBuffer(sign);
-				// 根据私钥进行解密
-				byte[] decodeSign = RSA.decrypt(privateKey, bSign);
-				String outputData = new String(decodeSign);
-				key = outputData.split(",")[0];
-				// 登陆成功
-				baseUser.setKey(key);
-				baseUser.setToken(token);
-				baseUser.setActivateState(UserState.NON_ACTIVATED);
-				this.userInfoService.updateUserInfo(baseUser);
-				String returnData = baseUser.getId() + "," + token;
-				map.put("state", "0");
-				map.put("message", "登陆成功！");
-				map.put("date", new Date());
-				map.put("data", new ReturnObject(DES.encryptDES(returnData, key)));
-			} else {
-				// 客户端生成随即字符串，用来做对称加密使用
-				UserInfo baseUser = this.userInfoService.getUserInfoByPhoneNumber(phoneNumber);
-				if (baseUser != null && baseUser.getActivateState().equals(UserState.ACTIVATED)) {
-					if (baseUser.getCaptcha().equals(captcha)) {
-						// 初始化私钥
-						RSA.loadPrivateKey(RSA.DEFAULT_PRIVATE_KEY);
-						// 私钥
-						RSAPrivateKey privateKey = RSA.getPrivateKey();
-						byte[] bSign = decoder.decodeBuffer(sign);
-						// 根据私钥进行解密
-						byte[] decodeSign = RSA.decrypt(privateKey, bSign);
-						String outputData = new String(decodeSign);
-						key = outputData.split(",")[0];
-						// 登陆成功
-						baseUser.setKey(key);
-						baseUser.setToken(token);
-						baseUser.setActivateState(UserState.NON_ACTIVATED);
-						this.userInfoService.updateUserInfo(baseUser);
-						String returnData = baseUser.getId() + "," + token;
-						map.put("state", "0");
-						map.put("message", "登陆成功！");
-						map.put("date", new Date());
-						map.put("data", new ReturnObject(DES.encryptDES(returnData, key)));
+			
+				if (phoneNumber.equals(Configure.getString("testAccount")) || phoneNumber.equals(Configure.getString("testAndroid"))) {
+					UserInfo baseUser = this.userInfoService.getUserInfoByPhoneNumber(phoneNumber);
+					// 初始化私钥
+					RSA.loadPrivateKey(RSA.DEFAULT_PRIVATE_KEY);
+					// 私钥
+					RSAPrivateKey privateKey = RSA.getPrivateKey();
+					byte[] bSign = decoder.decodeBuffer(sign);
+					// 根据私钥进行解密
+					byte[] decodeSign = RSA.decrypt(privateKey, bSign);
+					String outputData = new String(decodeSign);
+					key = outputData.split(",")[0];
+					// 登陆成功
+					baseUser.setKey(key);
+					baseUser.setToken(token);
+					baseUser.setActivateState(UserState.NON_ACTIVATED);
+					this.userInfoService.updateUserInfo(baseUser);
+					String returnData = baseUser.getId() + "," + token;
+					map.put("state", "0");
+					map.put("message", "登陆成功！");
+					map.put("date", new Date());
+					map.put("data", new ReturnObject(DES.encryptDES(returnData, key)));
+				} else {
+					// 客户端生成随即字符串，用来做对称加密使用
+					UserInfo baseUser = this.userInfoService.getUserInfoByPhoneNumber(phoneNumber);
+					if (baseUser != null && baseUser.getActivateState().equals(UserState.ACTIVATED)) {
+						if (baseUser.getCaptcha().equals(captcha)) {
+							// 初始化私钥
+							RSA.loadPrivateKey(RSA.DEFAULT_PRIVATE_KEY);
+							// 私钥
+							RSAPrivateKey privateKey = RSA.getPrivateKey();
+							byte[] bSign = decoder.decodeBuffer(sign);
+							// 根据私钥进行解密
+							byte[] decodeSign = RSA.decrypt(privateKey, bSign);
+							String outputData = new String(decodeSign);
+							key = outputData.split(",")[0];
+							// 登陆成功
+							baseUser.setKey(key);
+							baseUser.setToken(token);
+							baseUser.setActivateState(UserState.NON_ACTIVATED);
+							this.userInfoService.updateUserInfo(baseUser);
+							String returnData = baseUser.getId() + "," + token;
+							map.put("state", "0");
+							map.put("message", "登陆成功！");
+							map.put("date", new Date());
+							map.put("data", new ReturnObject(DES.encryptDES(returnData, key)));
+						} else {
+							map.put("state", "1");
+							map.put("message", "登陆失败,验证码不正确！");
+							map.put("date", new Date());
+							map.put("data", new ReturnObject(null));
+						}
 					} else {
-						map.put("state", "1");
-						map.put("message", "登陆失败,验证码不正确！");
+						map.put("state", "2");
+						map.put("message", "您的账号已在其他设备上登陆！");
 						map.put("date", new Date());
 						map.put("data", new ReturnObject(null));
 					}
-				} else {
-					map.put("state", "2");
-					map.put("message", "您的账号已在其他设备上登陆！");
-					map.put("date", new Date());
-					map.put("data", new ReturnObject(null));
 				}
-			}
 			response.reset();
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/json");

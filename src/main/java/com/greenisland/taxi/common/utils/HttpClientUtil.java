@@ -25,7 +25,7 @@ public class HttpClientUtil {
 		// conn.setConnectTimeout(10000);//连接超时 单位毫秒
 		// conn.setReadTimeout(2000);//读取超时 单位毫秒
 		conn.setDoOutput(true);// 是否输入参数
-		String params = "phoneNumber=" + phoneNumber + "&message=" + URLEncoder.encode(message, "UTF-8");
+		String params = "phoneNumber=" + phoneNumber + "&message=" + URLEncoder.encode(message,"UTF-8");
 		byte[] bypes = params.toString().getBytes();
 		conn.getOutputStream().write(bypes);// 输入参数
 		InputStream inStream = conn.getInputStream();

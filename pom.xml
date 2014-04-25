@@ -201,7 +201,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
 	<repositories>
 		<repository>
 			<id>bsdn-maven-repository</id>
