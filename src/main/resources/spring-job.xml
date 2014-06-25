@@ -15,8 +15,8 @@
 	<!-- <value>com.greenisland.taxi.gateway.cmpp.util.MsgActivityTimer -->
 	<!-- </value> -->
 	<!-- </property> -->
-	<!-- <property name="applicationContextJobDataKey" value="applicationContext" 
-		/> -->
+	<!-- <property name="applicationContextJobDataKey" value="applicationContext" -->
+	<!-- /> -->
 	<!-- <property name="jobDataAsMap"> -->
 	<!-- <map> -->
 	<!-- <entry key="msgContainer"> -->

@@ -42,12 +42,12 @@ public class PushTest {
 	// System.out.println(response);
 	// }
 
-	@Test
-	public void pushMessageAndroid() {
-		DefaultPushClient client = new DefaultPushClient(new PushCredentials(
-				API_KEY, SECRIT_KEY));
-		PushMessageRequest request = new PushMessageRequest();
-		request.setMessageType(MessageType.message);
+//	@Test
+//	public void pushMessageAndroid() {
+//		DefaultPushClient client = new DefaultPushClient(new PushCredentials(
+//				API_KEY, SECRIT_KEY));
+//		PushMessageRequest request = new PushMessageRequest();
+//		request.setMessageType(MessageType.message);
 //		StringBuilder message = new StringBuilder("{\"custom\":{");
 //		message.append("\"id\":\"4028688142e7e29c0142e7eda2ab000b\",");
 //		message.append("\"plate\":\"浙A123\",");
@@ -62,14 +62,14 @@ public class PushTest {
 //		message.append("}");
 //		request.setChannelId("4478218280303304392");
 //		request.setUserId("745409507009129179");
-		StringBuilder message = new StringBuilder("aaaa");
-		request.setMessages(message.toString());
-		request.setPushType(PushType.all_user);
-		request.setDeviceTypes(Arrays.asList(DeviceType.android));
-		request.setDeployStatus(Long.valueOf(2));
-		request.setMessageKeys(UUID.randomUUID().toString());
-		PushResponse<Integer> response = client.pushMessage(request);
-		System.out.println(response);
-	}
+//		StringBuilder message = new StringBuilder("aaaa");
+//		request.setMessages(message.toString());
+//		request.setPushType(PushType.all_user);
+//		request.setDeviceTypes(Arrays.asList(DeviceType.android));
+//		request.setDeployStatus(Long.valueOf(2));
+//		request.setMessageKeys(UUID.randomUUID().toString());
+//		PushResponse<Integer> response = client.pushMessage(request);
+//		System.out.println(response);
+//	}
 
 }
