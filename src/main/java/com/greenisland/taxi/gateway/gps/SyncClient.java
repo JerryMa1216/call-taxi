@@ -20,8 +20,16 @@ public class SyncClient {
 	private static Logger log = Logger.getLogger(SyncClient.class.getName());
 	@Resource(name = "syncResponse")
 	private SyncResponse synResponse;
-
 	private String result;// 线程同步锁变量
+	private GpsClient gpsClient;
+
+	public GpsClient getGpsClient() {
+		return gpsClient;
+	}
+
+	public void setGpsClient(GpsClient gpsClient) {
+		this.gpsClient = gpsClient;
+	}
 
 	/**
 	 * 同步get方法
@@ -72,6 +80,7 @@ public class SyncClient {
 		String msgId = msg1.substring(0, 4);
 		log.info("========== 向GPS发送数据： " + message);
 		GpsClient gpsClient = new GpsClient(this, synResponse);
+		setGpsClient(gpsClient);
 		String returnData = null;
 		String loginMessage = TCPUtils.getLoginMsg(gpsClient.getUsername(), gpsClient.getPassword());
 		log.info("======== 登陆GPS服务器 ========");

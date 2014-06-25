@@ -92,6 +92,7 @@ public class LoginController {
 						if (capCount < Integer.parseInt(Configure.getString("count"))) {
 							try {
 								message.append("余杭的士，登陆验证码为： " + captchaCode);
+								log.info("==========向："+phoneNumber+",发送短信验证码。");
 								flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
 								if (flag) {
 									userInfo.setCaptcha(captchaCode);
@@ -161,8 +162,6 @@ public class LoginController {
 					if (capCount < Integer.parseInt(Configure.getString("count"))) {
 						try {
 							message.append("余杭的士，登陆验证码为： " + captchaCode);
-							// flag = this.msgContainer.sendMsg(message.toString(),
-							// phoneNumber);
 							flag = HttpClientUtil.sendPostRequestByForm(phoneNumber, message.toString());
 							if (flag) {
 								userInfo.setCaptcha(captchaCode);

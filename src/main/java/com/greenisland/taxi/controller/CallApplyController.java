@@ -194,7 +194,7 @@ public class CallApplyController {
 			log.error("系统异常>>" + e.getMessage());
 		}
 		// 开启一个倒计时线程，时间到将新增申请置位无效
-		new CallApplyThread(callApplyInfoService, applyId);
+		new CallApplyThread(callApplyInfoService, applyId, syncClient);
 	}
 
 	/**

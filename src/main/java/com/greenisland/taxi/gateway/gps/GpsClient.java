@@ -135,6 +135,7 @@ public class GpsClient extends Thread {
 				e.printStackTrace();
 			}
 		}
+		log.info("==========socket连接关闭==========");
 	}
 
 	public String getHost() {

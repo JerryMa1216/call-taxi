@@ -75,22 +75,22 @@ public class TaxiController {
 			TaxiInfo tempTaxi = new TaxiInfo();
 			if (taxis != null) {
 				for (TaxiInfo taxi : taxis) {
-					if (taxi.getIsEmpty().equals("0")) {
-						// 验证出租车是否存在
-						if (taxiInfoService.validateTaxiExist(taxi.getTaxiPlateNumber())) {
-							// 存在，获取出租车出租车历史订单信息
-							tempTaxi = taxiInfoService.getTaxiByPlateNumber(taxi.getTaxiPlateNumber());
-							taxi.setId(tempTaxi.getId());
-							taxi.setCallApplyInfos(tempTaxi.getCallApplyInfos());
-							taxi.setBreakPromiseCount(tempTaxi.getBreakPromiseCount());
-						} else {
-							// 不存在，则历史订单信息为空，爽约次数也为空
-							taxi.setCallApplyInfos(null);
-							taxi.setBreakPromiseCount(0);
-						}
-						// 设置返回值
-						reTaxis.add(taxi);
+					// if (taxi.getIsEmpty().equals("0")) {
+					// 验证出租车是否存在
+					if (taxiInfoService.validateTaxiExist(taxi.getTaxiPlateNumber())) {
+						// 存在，获取出租车出租车历史订单信息
+						tempTaxi = taxiInfoService.getTaxiByPlateNumber(taxi.getTaxiPlateNumber());
+						taxi.setId(tempTaxi.getId());
+						taxi.setCallApplyInfos(tempTaxi.getCallApplyInfos());
+						taxi.setBreakPromiseCount(tempTaxi.getBreakPromiseCount());
+					} else {
+						// 不存在，则历史订单信息为空，爽约次数也为空
+						taxi.setCallApplyInfos(null);
+						taxi.setBreakPromiseCount(0);
 					}
+					// 设置返回值
+					reTaxis.add(taxi);
+					// }
 				}
 				map.put("state", "0");
 				map.put("message", "OK");
