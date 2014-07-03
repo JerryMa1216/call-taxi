@@ -23,8 +23,8 @@ import com.greenisland.taxi.domain.TaxiInfo;
 @Component
 public class DefaultMessageHandler implements MessageHandler {
 	private static Log log = LogFactory.getLog(DefaultMessageHandler.class);
-	
-	public Map<String, Object> handler(String message) {
+
+	public Map<String, Object> handler(String message) throws Exception{
 		Map<String, Object> map = new HashMap<String, Object>();
 		if (StringUtils.hasText(message)) {
 			String msg1 = message.substring(2);
@@ -86,9 +86,9 @@ public class DefaultMessageHandler implements MessageHandler {
 				map.put(Integer.toString(GPSCommand.GPS_TAXI_MONITER), taxi);
 				break;
 			case GPSCommand.GPS_CALL_RESP:
-				if(content[1].equals("OK")){
+				if (content[1].equals("OK")) {
 					map.put(Integer.toString(GPSCommand.GPS_CALL_RESP), content[0]);
-				}else{
+				} else {
 					map.put(Integer.toString(GPSCommand.GPS_CALL_RESP), "ER");
 				}
 				break;

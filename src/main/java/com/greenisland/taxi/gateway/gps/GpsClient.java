@@ -89,7 +89,7 @@ public class GpsClient extends Thread {
 					break;
 				}
 				if (rLen > 0) {
-					resultValue = new String(data, 0, rLen, "GBK");
+					resultValue = new String(new String(data, 0, rLen, "GBK").getBytes("UTF-8"), "UTF-8");
 					String msg1 = resultValue.substring(2);
 					String msg2 = msg1.substring(0, msg1.indexOf(">"));
 					// 消息id
@@ -108,13 +108,14 @@ public class GpsClient extends Thread {
 						log.info("======= 登录GPS服务器响应=======");
 						log.info(resultValue);
 						log.info("======= 登录GPS服务器响应=======");
-						synchronized (client) {
-							client.setResult(resultValue);
-						}
+						// synchronized (client) {
+						// client.setResult(resultValue);
+						// }
 					} else {
-						synchronized (client) {
-							client.setResult(resultValue);
-						}
+						// synchronized (client) {
+						// client.setResult(resultValue);
+						// }
+						client.setResult(resultValue);
 					}
 				}
 			} catch (Exception e) {

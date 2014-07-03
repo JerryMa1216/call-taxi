@@ -5,7 +5,6 @@ import javax.annotation.Resource;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-import com.bstek.dorado.core.Configure;
 import com.greenisland.taxi.common.constant.GPSCommand;
 import com.greenisland.taxi.common.utils.TCPUtils;
 
@@ -31,40 +30,48 @@ public class SyncClient {
 		this.gpsClient = gpsClient;
 	}
 
-	/**
-	 * 同步get方法
-	 * 
-	 * @return
-	 */
-	public synchronized String getResult() {
-		while (result == null) {
-			try {
-				wait(10000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		String returnData = result;
-		result = null;
-		notify();
-		return returnData;
+	// /**
+	// * 同步get方法
+	// *
+	// * @return
+	// */
+	// public synchronized String getResult() {
+	// while (result == null) {
+	// try {
+	// wait(10000);
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	// }
+	// String returnData = result;
+	// result = null;
+	// notify();
+	// return returnData;
+	// }
+	//
+	// /**
+	// * 同步set方法
+	// *
+	// * @param data
+	// */
+	// public synchronized void setResult(String data) {
+	// while (result != null) {
+	// try {
+	// wait(10000);
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	// }
+	// this.result = data;
+	// notify();
+	// }
+
+	public String getResult() {
+		return result;
 	}
 
-	/**
-	 * 同步set方法
-	 * 
-	 * @param data
-	 */
-	public synchronized void setResult(String data) {
-		while (result != null) {
-			try {
-				wait(10000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		this.result = data;
-		notify();
+	public void setResult(String result) {
+		this.result = result;
 	}
 
 	/**
@@ -85,28 +92,30 @@ public class SyncClient {
 		String loginMessage = TCPUtils.getLoginMsg(gpsClient.getUsername(), gpsClient.getPassword());
 		log.info("======== 登陆GPS服务器 ========");
 		boolean flag = gpsClient.sendMessage(gpsClient.getSocket(), loginMessage);
-		if (flag) {
-			returnData = getResult();
-			int count = 0;
-			while (returnData.indexOf("ER") != -1) {
-				log.info("========= 登陆失败，重新登陆 =========");
-				count++;
-				flag = gpsClient.sendMessage(gpsClient.getSocket(), loginMessage);
-				if (flag) {
-					returnData = getResult();
-				}
-				if (count >= (Integer.parseInt(Configure.getString("gpsConnectCount")) - 1)) {
-					return null;
-				}
-			}
-		} else {
-			return null;
-		}
+		// if (flag) {
+		// returnData = getResult();
+		// int count = 0;
+		// while (returnData.indexOf("ER") != -1) {
+		// log.info("========= 登陆失败，重新登陆 =========");
+		// count++;
+		// flag = gpsClient.sendMessage(gpsClient.getSocket(), loginMessage);
+		// if (flag) {
+		// returnData = getResult();
+		// }
+		// if (count >=
+		// (Integer.parseInt(Configure.getString("gpsConnectCount")) - 1)) {
+		// return null;
+		// }
+		// }
+		// } else {
+		// return null;
+		// }
 		log.info("========= 登陆成功 ==========");
 		flag = gpsClient.sendMessage(gpsClient.getSocket(), message);
 		if (flag) {
 			// 请求为周边车辆查询
 			if (!msgId.equals(GPSCommand.GPS_CALL_REQUEST)) {
+				Thread.sleep(170);
 				returnData = getResult();
 				// 执行完成，关闭socket连接
 				gpsClient.cancel();

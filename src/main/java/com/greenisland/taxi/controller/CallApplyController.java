@@ -140,7 +140,7 @@ public class CallApplyController {
 			applyInfo.setCallScope(Integer.parseInt(callScope));// 叫车范围
 			applyInfo.setCallTime(format.parse(callTime));// 叫车时间
 			applyInfo.setCallType(callType);// 叫车类型 1即时叫车 2预约叫车
-			applyInfo.setEndLocation("测试目的地");// 目的地
+			applyInfo.setEndLocation("默认目的地");// 目的地
 			applyInfo.setStartLocation(sLoca);// 出发地
 			applyInfo.setMechineType(mechineType);// 设备类型
 			applyInfo.setCreateDate(new Date());
