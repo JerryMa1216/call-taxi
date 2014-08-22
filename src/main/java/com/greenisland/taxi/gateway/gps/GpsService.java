@@ -3,6 +3,7 @@ package com.greenisland.taxi.gateway.gps;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.Socket;
 
 import javax.annotation.Resource;
 
@@ -22,7 +23,7 @@ public class GpsService {
 	private int port = Integer.parseInt(Configure.getString("port"));
 	private Writer writer;
 	private Reader reader;
-	// private Socket socket;
+	private Socket socket;
 	private GpsClientSync clientSync;
 	private GpsClientAsync clientAsync;
 
@@ -31,7 +32,7 @@ public class GpsService {
 	 */
 	public void initAsync() {
 		this.clientAsync = new GpsClientAsync(synResponse);
-		// this.socket = clientAsync.getSocket();
+		this.socket = clientAsync.getSocket();
 		this.writer = clientAsync.getWriter();
 		this.reader = clientAsync.getReader();
 	}
@@ -41,7 +42,7 @@ public class GpsService {
 	 */
 	public void initSync() {
 		this.clientSync = new GpsClientSync(host, port);
-		// this.socket = clientSync.connect();
+		this.socket = clientSync.connect();
 		this.reader = clientSync.getReader();
 		this.writer = clientSync.getWriter();
 	}
