@@ -41,6 +41,6 @@
 	<bean id="authenticateFilter" class="com.greenisland.taxi.security.filter.AuthenticateFilter">
 		<property name="userInfoService" ref="userInfoService" />
 		<property name="ignoreURL"
-			value="/rest/1.0/taxi/get_captcha,/rest/1.0/taxi/login,/rest/1.0/taxi/query_taxi,/rest/1.0/taxi/get_store" />
+			value="/rest/1.0/taxi/get_captcha,/rest/1.0/taxi/login,/rest/1.0/taxi/query_taxi,/rest/1.0/taxi/query_count,/rest/1.0/taxi/get_store" />
 	</bean>
 </beans>
