@@ -32,6 +32,7 @@ import com.greenisland.taxi.domain.CompanyInfo;
 import com.greenisland.taxi.domain.LocationInfo;
 import com.greenisland.taxi.domain.TaxiInfo;
 import com.greenisland.taxi.domain.UserInfo;
+import com.greenisland.taxi.gateway.gps.GpsService;
 import com.greenisland.taxi.gateway.gps.SyncClient;
 import com.greenisland.taxi.manager.CallApplyInfoService;
 import com.greenisland.taxi.manager.CommentInfoService;
@@ -52,6 +53,9 @@ public class CallApplyController {
 	private static Logger log = Logger.getLogger(CallApplyController.class.getName());
 	@Resource
 	private SyncClient syncClient;
+	// test
+	@Resource
+	private GpsService gpsService;
 	@Resource
 	private UserInfoService userInfoService;
 	@Resource
@@ -159,7 +163,8 @@ public class CallApplyController {
 			String requestMsg = TCPUtils.getCallApply(applyInfo, applyId + "-" + mechineType + "-" + name + "-" + age + "-" + callType, location,
 					userInfo);
 			try {
-				syncClient.sendMessage(requestMsg);
+				// syncClient.sendMessage(requestMsg);
+				gpsService.sendCallMessage(requestMsg);
 				// 叫车请求发送成功
 				map.put("state", 0);
 				map.put("message", "OK");
@@ -194,7 +199,7 @@ public class CallApplyController {
 			log.error("系统异常>>" + e.getMessage());
 		}
 		// 开启一个倒计时线程，时间到将新增申请置位无效
-		new CallApplyThread(callApplyInfoService, applyId, syncClient);
+		new CallApplyThread(callApplyInfoService, applyId, gpsService);
 	}
 
 	/**

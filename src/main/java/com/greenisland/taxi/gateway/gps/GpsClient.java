@@ -89,7 +89,8 @@ public class GpsClient extends Thread {
 					break;
 				}
 				if (rLen > 0) {
-					resultValue = new String(new String(data, 0, rLen, "GBK").getBytes("UTF-8"), "UTF-8");
+					resultValue = new String(data, 0, rLen, "GBK");
+					System.out.println(resultValue);
 					String msg1 = resultValue.substring(2);
 					String msg2 = msg1.substring(0, msg1.indexOf(">"));
 					// 消息id
@@ -99,7 +100,7 @@ public class GpsClient extends Thread {
 					log.info("======响应消息类型=======");
 					if (msgId.equals(Integer.toString(GPSCommand.GPS_TAXI_RESP))) {
 						log.info("====== 召车抢答响应 ======");
-						synResponse.handlerResponse(resultValue, this);
+						// synResponse.handlerResponse(resultValue, this);
 					} else if (msgId.equals(Integer.toString(GPSCommand.GPS_CALL_RESP))) {
 						log.info("======= 召车响应 ======");
 						log.info(resultValue);
@@ -112,10 +113,10 @@ public class GpsClient extends Thread {
 						// client.setResult(resultValue);
 						// }
 					} else {
-						// synchronized (client) {
+						synchronized (client) {
+							client.setResult(resultValue);
+						}
 						// client.setResult(resultValue);
-						// }
-						client.setResult(resultValue);
 					}
 				}
 			} catch (Exception e) {
@@ -202,5 +203,4 @@ public class GpsClient extends Thread {
 	public void setReturnData(String returnData) {
 		this.returnData = returnData;
 	}
-
 }

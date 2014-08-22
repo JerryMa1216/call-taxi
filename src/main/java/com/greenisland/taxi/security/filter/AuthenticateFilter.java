@@ -65,10 +65,20 @@ public class AuthenticateFilter implements Filter {
 				String sign = request.getParameter("sign");
 				String uid = request.getParameter("uid");
 				UserInfo user = this.userInfoService.getUserInfoById(uid);
-				String decryptSign = DES.decryptDES(sign, user.getKey());
-				String token = decryptSign.split(",")[0];
-				if (!user.getToken().trim().equals(token)) {
-					log.error("来自：" + request.getRemoteAddr() + "用户访问资源" + url + "没有访问权限！");
+				try {
+					String decryptSign = DES.decryptDES(sign, user.getKey());
+					String token = decryptSign.split(",")[0];
+					if (!user.getToken().trim().equals(token)) {
+						log.error("来自：" + request.getRemoteAddr() + "用户访问资源" + url + "没有访问权限！");
+						map.put("state", "3");
+						map.put("message", "无访问权限");
+						pw.write(objectMapper.writeValueAsString(map));
+						pw.flush();
+						pw.close();
+						return;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 					map.put("state", "3");
 					map.put("message", "无访问权限");
 					pw.write(objectMapper.writeValueAsString(map));

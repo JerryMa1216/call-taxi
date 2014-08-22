@@ -37,7 +37,7 @@ public class SyncResponse {
 	private PushClient pushClient;
 
 	@Transactional
-	public void handlerResponse(String responseData, GpsClient gpsClient) {
+	public void handlerResponse(String responseData, GpsClientAsync gpsClient) {
 		try {
 			Map<String, Object> mapTaxi = null;// 调用接口返回值
 			mapTaxi = handler(responseData);

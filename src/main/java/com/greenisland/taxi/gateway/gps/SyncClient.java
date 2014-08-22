@@ -30,49 +30,49 @@ public class SyncClient {
 		this.gpsClient = gpsClient;
 	}
 
-	// /**
-	// * 同步get方法
-	// *
-	// * @return
-	// */
-	// public synchronized String getResult() {
-	// while (result == null) {
-	// try {
-	// wait(10000);
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	// }
-	// String returnData = result;
-	// result = null;
-	// notify();
-	// return returnData;
+	/**
+	 * 同步get方法
+	 * 
+	 * @return
+	 */
+	public synchronized String getResult() {
+		while (result == null) {
+			try {
+				wait(10000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		String returnData = result;
+		result = null;
+		notify();
+		return returnData;
+	}
+
+	/**
+	 * 同步set方法
+	 * 
+	 * @param data
+	 */
+	public synchronized void setResult(String data) {
+		while (result != null) {
+			try {
+				wait(10000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		this.result = data;
+		notify();
+	}
+
+	// public String getResult() {
+	// return result;
 	// }
 	//
-	// /**
-	// * 同步set方法
-	// *
-	// * @param data
-	// */
-	// public synchronized void setResult(String data) {
-	// while (result != null) {
-	// try {
-	// wait(10000);
-	// } catch (Exception e) {
-	// e.printStackTrace();
+	// public void setResult(String result) {
+	// this.result = result;
 	// }
-	// }
-	// this.result = data;
-	// notify();
-	// }
-
-	public String getResult() {
-		return result;
-	}
-
-	public void setResult(String result) {
-		this.result = result;
-	}
 
 	/**
 	 * 发送信息
@@ -115,7 +115,7 @@ public class SyncClient {
 		if (flag) {
 			// 请求为周边车辆查询
 			if (!msgId.equals(GPSCommand.GPS_CALL_REQUEST)) {
-				Thread.sleep(170);
+				// Thread.sleep(170);
 				returnData = getResult();
 				// 执行完成，关闭socket连接
 				gpsClient.cancel();

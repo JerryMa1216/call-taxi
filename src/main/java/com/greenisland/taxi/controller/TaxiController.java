@@ -23,6 +23,7 @@ import com.greenisland.taxi.common.constant.GPSCommand;
 import com.greenisland.taxi.common.utils.TCPUtils;
 import com.greenisland.taxi.domain.CallApplyInfo;
 import com.greenisland.taxi.domain.TaxiInfo;
+import com.greenisland.taxi.gateway.gps.GpsService;
 import com.greenisland.taxi.gateway.gps.SyncClient;
 import com.greenisland.taxi.gateway.gps.resolver.MessageHandler;
 import com.greenisland.taxi.manager.CallApplyInfoService;
@@ -40,12 +41,61 @@ public class TaxiController {
 	private static Logger log = Logger.getLogger(TaxiController.class.getName());
 	@Resource
 	private SyncClient syncClient;
+	// test
+	@Resource
+	private GpsService gpsService;
 	@Resource
 	private MessageHandler messageHandler;
 	@Resource
 	private TaxiInfoService taxiInfoService;
 	@Resource
 	private CallApplyInfoService applyInfoService;
+
+	/**
+	 * 周边车辆查询
+	 * 
+	 * @param longitude
+	 * @param latitude
+	 * @param response
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/query_count", method = RequestMethod.GET)
+	public void queryTaxisCount(@RequestParam String longitude, @RequestParam String latitude, @RequestParam String radius,
+			HttpServletResponse response) {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:dd"));
+		// 持久化用户叫车位置
+		Map<String, Object> mapTaxi = null;// 调用接口返回值
+		try {
+			String requestParam = TCPUtils.getTaxis(longitude, latitude, radius);
+			String returnData = gpsService.sendMessage(requestParam);
+			mapTaxi = messageHandler.handler(returnData);
+			// 周边车辆查询，GPS平台返回的出租车信息
+			List<TaxiInfo> taxis = (List<TaxiInfo>) mapTaxi.get(Integer.toString(GPSCommand.GPS_AROUND_TAXIS));
+			map.put("state", "0");
+			map.put("message", "OK");
+			map.put("date", new Date());
+			map.put("data", taxis.size());
+		} catch (Exception e) {
+			log.error("系统异常>>" + e.getMessage());
+			map.put("state", "0");
+			map.put("message", "OK");
+			map.put("date", new Date());
+			map.put("data", 0);
+		}
+		try {
+			response.reset();
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("text/json");
+			PrintWriter pw = response.getWriter();
+			pw.write(objectMapper.writeValueAsString(map));
+			pw.flush();
+			pw.close();
+		} catch (Exception e) {
+			log.error("系统异常>>" + e.getMessage());
+		}
+	}
 
 	/**
 	 * 周边车辆查询
@@ -67,7 +117,8 @@ public class TaxiController {
 		try {
 			String requestParam = TCPUtils.getTaxis(longitude, latitude, defaultRadius);
 			// syncClient.sendMessage(requestParam);
-			String returnData = syncClient.sendMessage(requestParam);
+			// String returnData = syncClient.sendMessage(requestParam);
+			String returnData = gpsService.sendMessage(requestParam);
 			mapTaxi = messageHandler.handler(returnData);
 			// 周边车辆查询，GPS平台返回的出租车信息
 			List<TaxiInfo> taxis = (List<TaxiInfo>) mapTaxi.get(Integer.toString(GPSCommand.GPS_AROUND_TAXIS));
@@ -141,74 +192,52 @@ public class TaxiController {
 		CallApplyInfo applyInfo = applyInfoService.getCallApplyInfoById(applyId);
 		Map<String, Object> returnMap = new HashMap<String, Object>();
 		Map<String, Object> mapReturn = null;
-		if (applyInfo.getMonitorCount() < 4) {
-			try {
-				applyInfo.setMonitorCount(applyInfo.getMonitorCount() + 1);
-				// 调用GPS监控出租车位置接口
-				// syncClient.sendMessage(TCPUtils.getMonitorMessage(applyId,
-				// plateNumber));
-				String responseData = null;
-				// 响应消息体如果不为1005，则一直去1005消息体
-				int count = 0;
-				boolean flagOk = false;
-				while (count < 5) {
-					// 获取GPS平台返回数据
-					responseData = syncClient.sendMessage(TCPUtils.getMonitorMessage(applyId, plateNumber));
-					String msg1 = responseData.substring(2);
-					String msg2 = msg1.substring(0, msg1.indexOf(">"));
-					// 消息id
-					String msgId = msg2.substring(0, 4);
-					if (msgId.equals(Integer.toString(GPSCommand.GPS_TAXI_MONITER))) {
-						flagOk = true;
-						break;
-					} else {
-						count++;
-					}
-				}
-				if (flagOk) {
-					mapReturn = messageHandler.handler(responseData);
-					TaxiInfo taxiInfo = (TaxiInfo) mapReturn.get(Integer.toString(GPSCommand.GPS_TAXI_MONITER));
-					this.applyInfoService.updateApplyInfo(applyInfo);
-					returnMap.put("taxiPlateNumber", taxiInfo.getTaxiPlateNumber());
-					returnMap.put("driverName", taxiInfo.getDriverName());
-					returnMap.put("dirverPhoneNumber", taxiInfo.getDirverPhoneNumber());
-					returnMap.put("longitude", taxiInfo.getLongitude());
-					returnMap.put("latitude", taxiInfo.getLatitude());
-					returnMap.put("gpsTime", taxiInfo.getGpsTime());
-					returnMap.put("company", taxiInfo.getCompanyInfo().getName());
-					returnMap.put("speed", taxiInfo.getSpeed());
-					returnMap.put("monitorCount", applyInfo.getMonitorCount());
-					map.put("state", "0");
-					map.put("message", "OK");
-					map.put("date", new Date());
-					map.put("data", returnMap);
+		try {
+			String responseData = null;
+			// 响应消息体如果不为1005，则一直去1005消息体
+			int count = 0;
+			boolean flagOk = false;
+			while (count < 5) {
+				responseData = gpsService.sendMessage(TCPUtils.getMonitorMessage(applyId, plateNumber));
+				String msg1 = responseData.substring(2);
+				String msg2 = msg1.substring(0, msg1.indexOf(">"));
+				// 消息id
+				String msgId = msg2.substring(0, 4);
+				if (msgId.equals(Integer.toString(GPSCommand.GPS_TAXI_MONITER))) {
+					flagOk = true;
+					break;
 				} else {
-					map.put("state", "1");
-					map.put("message", "ER");
-					map.put("date", new Date());
-					map.put("data", null);
+					count++;
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
+			}
+			if (flagOk) {
+				mapReturn = messageHandler.handler(responseData);
+				TaxiInfo taxiInfo = (TaxiInfo) mapReturn.get(Integer.toString(GPSCommand.GPS_TAXI_MONITER));
+				returnMap.put("taxiPlateNumber", taxiInfo.getTaxiPlateNumber());
+				returnMap.put("driverName", taxiInfo.getDriverName());
+				returnMap.put("dirverPhoneNumber", taxiInfo.getDirverPhoneNumber());
+				returnMap.put("longitude", taxiInfo.getLongitude());
+				returnMap.put("latitude", taxiInfo.getLatitude());
+				returnMap.put("gpsTime", taxiInfo.getGpsTime());
+				returnMap.put("company", taxiInfo.getCompanyInfo().getName());
+				returnMap.put("speed", taxiInfo.getSpeed());
+				returnMap.put("monitorCount", applyInfo.getMonitorCount());
+				map.put("state", "0");
+				map.put("message", "OK");
+				map.put("date", new Date());
+				map.put("data", returnMap);
+			} else {
 				map.put("state", "1");
 				map.put("message", "ER");
 				map.put("date", new Date());
 				map.put("data", null);
 			}
-		} else {
-			returnMap.put("taxiPlateNumber", null);
-			returnMap.put("driverName", null);
-			returnMap.put("dirverPhoneNumber", null);
-			returnMap.put("longitude", null);
-			returnMap.put("latitude", null);
-			returnMap.put("gpsTime", null);
-			returnMap.put("company", null);
-			returnMap.put("speed", null);
-			returnMap.put("monitorCount", 4);
-			map.put("state", "0");
-			map.put("message", "OK");
+		} catch (Exception e) {
+			e.printStackTrace();
+			map.put("state", "1");
+			map.put("message", "ER");
 			map.put("date", new Date());
-			map.put("data", returnMap);
+			map.put("data", null);
 		}
 		try {
 			response.reset();
