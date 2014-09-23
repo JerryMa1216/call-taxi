@@ -112,6 +112,8 @@ public class GpsService {
 			log.info("周边车辆查询==========");
 		} else if (sendType.equals(GPSCommand.GPS_TAXI_MONITER_REQUEST)) {
 			log.info("监控车辆位置==========");
+		}else if (sendType.equals(GPSCommand.GPS_TAXI_CANCEL_REQUEST)) {
+			log.info("取消打车请求==========");
 		}
 		try {
 			login();

@@ -76,9 +76,9 @@ public class TaxiController {
 			map.put("state", "0");
 			map.put("message", "OK");
 			map.put("date", new Date());
-			map.put("data", taxis.size());
+			map.put("data", taxis != null ? taxis.size() : 0);
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("周边车辆查询数量异常>>" + e.getMessage());
 			map.put("state", "0");
 			map.put("message", "OK");
 			map.put("date", new Date());
@@ -93,7 +93,7 @@ public class TaxiController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("周边车辆查询数量异常>>" + e.getMessage());
 		}
 	}
 
@@ -156,7 +156,7 @@ public class TaxiController {
 				map.put("data", null);
 			}
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("周边车辆查询异常>>" + e.getMessage());
 			map.put("state", "1");
 			map.put("message", "ER");
 			map.put("count", 0);
@@ -172,7 +172,7 @@ public class TaxiController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("周边车辆查询异常>>" + e.getMessage());
 		}
 	}
 
@@ -248,7 +248,7 @@ public class TaxiController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("监控异常>>" + e.getMessage());
 		}
 	}
 

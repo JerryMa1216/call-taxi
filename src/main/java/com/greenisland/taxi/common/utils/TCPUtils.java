@@ -74,6 +74,18 @@ public class TCPUtils {
 	}
 
 	/**
+	 * 取消打车信息
+	 * @param applyId
+	 * @return
+	 */
+	public static String getCancelCall(String applyId) {
+		StringBuilder cancelMessage = new StringBuilder("<<0007,");
+		cancelMessage.append(generateProcessId());
+		cancelMessage.append("," + applyId + ">>");
+		return cancelMessage.toString();
+	}
+
+	/**
 	 * 获取即时叫车请求信息
 	 * 
 	 * @param applyInfo

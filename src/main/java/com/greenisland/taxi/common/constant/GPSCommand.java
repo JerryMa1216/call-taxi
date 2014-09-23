@@ -28,6 +28,11 @@ public interface GPSCommand {
 	 * 车辆位置跟踪应答
 	 */
 	int GPS_TAXI_MONITER = 1005;
+
+	/**
+	 * 取消打车应答
+	 */
+	int GPS_TAXI_CANCEL = 1007;
 	/**
 	 * 心跳包应答
 	 */
@@ -49,4 +54,9 @@ public interface GPSCommand {
 	 * 车辆位置跟踪
 	 */
 	String GPS_TAXI_MONITER_REQUEST = "0005";
+
+	/**
+	 * 取消打车请求
+	 */
+	String GPS_TAXI_CANCEL_REQUEST = "0007";
 }

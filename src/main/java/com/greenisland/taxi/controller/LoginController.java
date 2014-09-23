@@ -107,7 +107,7 @@ public class LoginController {
 									map.put("data", null);
 								}
 							} catch (Exception e) {
-								log.error("系统异常>>" + e.getMessage());
+								log.error("获取验证码异常>>" + e.getMessage());
 								map.put("state", "1");
 								map.put("message", "异常失败");
 								map.put("date", new Date());
@@ -141,7 +141,7 @@ public class LoginController {
 								map.put("data", null);
 							}
 						} catch (Exception e) {
-							log.error("系统异常>>" + e.getMessage());
+							log.error("获取验证码异常>>" + e.getMessage());
 							map.put("state", "1");
 							map.put("message", "异常失败");
 							map.put("date", new Date());
@@ -177,7 +177,7 @@ public class LoginController {
 								map.put("data", null);
 							}
 						} catch (Exception e) {
-							log.error("系统异常>>" + e.getMessage());
+							log.error("获取验证码异常>>" + e.getMessage());
 							map.put("state", "1");
 							map.put("message", "异常失败");
 							map.put("date", new Date());
@@ -211,7 +211,7 @@ public class LoginController {
 							map.put("data", null);
 						}
 					} catch (Exception e) {
-						log.error("系统异常>>" + e.getMessage());
+						log.error("获取验证码异常>>" + e.getMessage());
 						map.put("state", "1");
 						map.put("message", "异常失败");
 						map.put("date", new Date());
@@ -234,7 +234,7 @@ public class LoginController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("获取验证码异常>>" + e.getMessage());
 		}
 		return null;
 	}
@@ -318,7 +318,7 @@ public class LoginController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("登录异常>>" + e.getMessage());
 		}
 	}
 
@@ -347,7 +347,7 @@ public class LoginController {
 			map.put("data", new ReturnObject(null));
 
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("意见反馈异常>>" + e.getMessage());
 			map.put("state", "1");
 			map.put("message", "反馈失败！");
 			map.put("date", new Date());
@@ -362,7 +362,7 @@ public class LoginController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("意见反馈异常>>" + e.getMessage());
 		}
 	}
 
@@ -390,7 +390,7 @@ public class LoginController {
 			map.put("data", new ReturnObject(null));
 
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("退出异常>>" + e.getMessage());
 			map.put("state", "1");
 			map.put("message", "退出失败！");
 			map.put("date", new Date());
@@ -405,7 +405,7 @@ public class LoginController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("退出异常>>" + e.getMessage());
 		}
 	}
 

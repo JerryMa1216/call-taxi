@@ -196,7 +196,7 @@ public class CallApplyController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("叫车请求异常>>" + e.getMessage());
 		}
 		// 开启一个倒计时线程，时间到将新增申请置位无效
 		new CallApplyThread(callApplyInfoService, applyId, gpsService);
@@ -223,13 +223,14 @@ public class CallApplyController {
 				// 司机已抢答，用户取消将订单有效状态置为无效
 				applyInfo.setDeleteFlag("N");
 				applyInfo.setState(ApplicationState.INVALIDATION);
-				callApplyInfoService.updateApplyInfo(applyInfo);
+			 	callApplyInfoService.updateApplyInfo(applyInfo);
 				UserInfo userInfo = userInfoService.getUserInfoById(uid);
 				userInfo.setBreakPromissDate(new Date());
 				int count = userInfo.getBreakPromiseCount();
 				userInfo.setBreakPromiseCount(count++);
 				userInfo.setUpdateDate(new Date());
 				this.userInfoService.updateUserInfo(userInfo);
+				gpsService.sendMessage(TCPUtils.getCancelCall(applyInfo.getId()));
 			}
 			map.put("state", 0);
 			map.put("message", "OK");
@@ -251,7 +252,7 @@ public class CallApplyController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("手动取消叫车请求异常>>" + e.getMessage());
 		}
 	}
 
@@ -275,6 +276,7 @@ public class CallApplyController {
 				applyInfo.setDeleteFlag("Y");
 				applyInfo.setState(ApplicationState.INVALIDATION);
 				callApplyInfoService.updateApplyInfo(applyInfo);
+				gpsService.sendMessage(TCPUtils.getCancelCall(applyInfo.getId()));
 			}
 			map.put("state", 0);
 			map.put("message", "OK");
@@ -296,7 +298,7 @@ public class CallApplyController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("系统自动取消叫车请求异常>>" + e.getMessage());
 		}
 	}
 
@@ -340,7 +342,7 @@ public class CallApplyController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("查询历史订单异常>>" + e.getMessage());
 		}
 	}
 
@@ -385,7 +387,7 @@ public class CallApplyController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("IOS设备获取推送详情异常>>" + e.getMessage());
 		}
 	}
 
@@ -460,7 +462,7 @@ public class CallApplyController {
 			pw.flush();
 			pw.close();
 		} catch (Exception e) {
-			log.error("系统异常>>" + e.getMessage());
+			log.error("评价司机异常>>" + e.getMessage());
 		}
 	}
 

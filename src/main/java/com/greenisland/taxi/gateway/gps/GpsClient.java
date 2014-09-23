@@ -109,14 +109,14 @@ public class GpsClient extends Thread {
 						log.info("======= 登录GPS服务器响应=======");
 						log.info(resultValue);
 						log.info("======= 登录GPS服务器响应=======");
-						// synchronized (client) {
-						// client.setResult(resultValue);
-						// }
-					} else {
+					}else if (msgId.equals(Integer.toString(GPSCommand.GPS_TAXI_CANCEL))) {
+						log.info("======= 取消打车响应=======");
+						log.info(resultValue);
+						log.info("======= 取消打车响应=======");
+					}else {
 						synchronized (client) {
 							client.setResult(resultValue);
 						}
-						// client.setResult(resultValue);
 					}
 				}
 			} catch (Exception e) {
