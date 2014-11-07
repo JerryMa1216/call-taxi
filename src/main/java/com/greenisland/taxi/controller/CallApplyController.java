@@ -164,7 +164,9 @@ public class CallApplyController {
 					userInfo);
 			try {
 				// syncClient.sendMessage(requestMsg);
-				gpsService.sendCallMessage(requestMsg);
+				// gpsService.sendCallMessage(requestMsg);
+				String returnMessage = gpsService.sendMessage(requestMsg);
+				log.info("====叫车请求响应：" + returnMessage);
 				// 叫车请求发送成功
 				map.put("state", 0);
 				map.put("message", "OK");
@@ -199,7 +201,7 @@ public class CallApplyController {
 			log.error("叫车请求异常>>" + e.getMessage());
 		}
 		// 开启一个倒计时线程，时间到将新增申请置位无效
-		new CallApplyThread(callApplyInfoService, applyId, gpsService);
+		// new CallApplyThread(callApplyInfoService, applyId, gpsService);
 	}
 
 	/**
@@ -223,7 +225,7 @@ public class CallApplyController {
 				// 司机已抢答，用户取消将订单有效状态置为无效
 				applyInfo.setDeleteFlag("N");
 				applyInfo.setState(ApplicationState.INVALIDATION);
-			 	callApplyInfoService.updateApplyInfo(applyInfo);
+				callApplyInfoService.updateApplyInfo(applyInfo);
 				UserInfo userInfo = userInfoService.getUserInfoById(uid);
 				userInfo.setBreakPromissDate(new Date());
 				int count = userInfo.getBreakPromiseCount();

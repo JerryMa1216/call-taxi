@@ -92,7 +92,6 @@ public class GpsClientAsync extends Thread {
 			StringBuffer sb;
 			while (!isRunning) {
 				sb = new StringBuffer();
-				log.info("==========系统后台监控接口");
 				while ((len = reader.read(chars)) != -1) {
 					sb.append(new String(chars, 0, len));
 					if (sb.indexOf(">>") != -1) {

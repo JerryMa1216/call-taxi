@@ -120,10 +120,12 @@ public class SyncResponse {
 			}
 			// 执行完推送后关闭socket
 			log.info("========== 司机抢答成功，关闭socket==========");
-			gpsClient.cancel();
+			// gpsClient.cancel();
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			gpsClient.cancel();
+			// gpsClient.cancel();
+		} finally {
+			// gpsClient.cancel();
 		}
 
 	}
